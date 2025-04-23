@@ -1,12 +1,20 @@
+import '@/css/join.css';
+import '@/css/join_common.css';
 import '@/css/common.css'
 import '@/css/layout.css'
 import '@/css/pop.css'
 import '@/css/style.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import AdminHeader from '@/components/admin/layout/AdminHeader';
+import AdminFooter from '@/components/admin/layout/AdminFooter';
 import Home from '@/components/pages/Home';
 import Login from '@/components/pages/login/Login';
+import Agreement from '@/components/pages/join/Agreement';
+import Register from '@/components/pages/join/Register';
+import Complete from '@/components/pages/join/Complete';
 import Warranty from '@/components/pages/service/Warranty';
 import AsCharge from '@/components/pages/service/AsCharge';
 import FreeAs from '@/components/pages/service/FreeAs';
@@ -28,18 +36,31 @@ import useAuthStore from './stores/authStore';
 import { IdleTimerProvider } from './stores/authStore';
 import LogoutPrompt from './components/common/LogoutPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
-
+import AdminRoutes from '@/components/admin/routes/AdminRoutes';
+import Aside from '@/components/admin/layout/Aside';
 // 헤더와 푸터를 포함하는 레이아웃 컴포넌트
-const Layout = ({ children }) => (
-  <div id="wrap">
-    <div id="accessibility">
-      <a href="#container">본문 바로가기</a>
+const Layout = ({ children }) => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/mng');
+
+  return (
+    <div id="wrap">
+      <div id="accessibility">
+        <a href="#container">본문 바로가기</a>
+      </div>
+      {isAdminRoute ? <AdminHeader /> : <Header />}
+      {isAdminRoute ? 
+        <main>
+          <Aside />
+          {children}
+        </main>
+        :
+        <main>{children}</main>
+      }
+      {isAdminRoute ? <AdminFooter /> : <Footer />}
     </div>
-    <Header />
-    {children}
-    <Footer />
-  </div>
-);
+  );
+};
 
 function App() {
   const { showLogoutPrompt, extendSession } = useAuthStore();
@@ -53,6 +74,9 @@ function App() {
               {/* 공개 페이지들 */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/service/warranty" element={<Warranty />} />
+              <Route path="/service/as_charge" element={<AsCharge />} />
+              <Route path="/service/free_as" element={<FreeAs />} />
               <Route path="/center-search" element={<CenterSearch />} />
               <Route path="/faq" element={<Faq />} />
               <Route path="/qna" element={<Qna />} />
@@ -62,6 +86,10 @@ function App() {
               <Route path="/down/prd_guide/:id" element={<PrdGuideDetail />} />
               <Route path="/down/cleanup/:id" element={<CleanupDetail />} />
               <Route path="/event/*" element={<Event />} />
+
+              <Route path="/join/agreement" element={<Agreement />} />
+              <Route path="/join/register" element={<Register />} />
+              <Route path="/join/complete" element={<Complete />} />
               
               {/* 보호된 페이지들 - 로그인 필요 */}
               <Route path="/qna/form" element={
@@ -74,31 +102,15 @@ function App() {
                   <QnaDetail />
                 </PrivateRoute>
               } />
-              <Route path="/service/warranty" element={
-                <PrivateRoute>
-                  <Warranty />
-                </PrivateRoute>
-              } />
-              <Route path="/service/as_charge" element={
-                <PrivateRoute>
-                  <AsCharge />
-                </PrivateRoute>
-              } />
-              <Route path="/service/free_as" element={
-                <PrivateRoute>
-                  <FreeAs />
-                </PrivateRoute>
-              } />
               
               {/* 관리자 전용 페이지들 */}
-              <Route path="/admin/*" element={
+              <Route path="/mng/*" element={
                 <AdminRoute>
-                  {/* 향후 관리자 페이지 컴포넌트 추가 */}
-                  <NotFound />
+                  <AdminRoutes />
                 </AdminRoute>
               } />
               
-              {/* 404 페이지 */}
+              {/* 404 페이지 - 가장 마지막에 배치 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             {showLogoutPrompt && (

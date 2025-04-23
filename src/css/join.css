@@ -80,7 +80,7 @@
 .agree_wrap .txt li{ padding:10px 20px 20px 20px;}
 .agree_wrap .txt li span{ font-weight:bold; color:#222; line-height:30px;}
 .agree_wrap .check2{ background-color:#f9f9f9; border-left:solid 1px #e1e1e1; border-right:solid 1px #e1e1e1; border-bottom:solid 1px #e1e1e1; border-radius:0 0 3px 3px; height:46px; line-height:46px; text-align:right; font-size:14px; letter-spacing:0px; padding-right:20px; color:#000;}
-.agree_wrap .check1{background-color:#f9f9f9; border-left:solid 1px #e1e1e1; border-right:solid 1px #e1e1e1; padding:10px; line-height:1.5em; text-align:right; word-break:keep-all;}
+.agree_wrap .check1{background-color:#f9f9f9; border-left:solid 1px #e1e1e1; border-right:solid 1px #e1e1e1; padding:10px; line-height:1.5em; text-align:right; word-break:keep-all;font-size: 12px;}
 .agree_wrap .check2 input{ width:18px; height:18px; vertical-align:middle; margin:0 5px 2px 0;}
 .agree_wrap .bd table{ border-top:solid 1px #e1e1e1; border-left:solid 1px #e1e1e1; font-size:13px;}
 .agree_wrap .bd table td{ border-bottom:solid 1px #e1e1e1; border-right:solid 1px #e1e1e1; padding:10px 15px 10px 15px;}

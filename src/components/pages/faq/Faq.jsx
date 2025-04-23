@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { faqImages } from '@/utils/data.js';
 import SearchForm from '@/components/common/SearchForm';
-import useApi from '@/utils/useApi';
-import useFaqStore from '@/stores/faqStore';
 import DOMPurify from 'dompurify';
+import useFaqStore from '@/stores/faqStore';
 
-
-// FAQ 관련 스타일 추가
+// FAQ 관련 스타일
 const faqStyles = {
   hidden: {
     height: '0',
@@ -39,7 +37,6 @@ const productTypes = ['통합', '무선청소기', '유선청소기', '로봇청
 
 const Faq = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const location = useLocation();
   
   const [activeQuestions, setActiveQuestions] = useState([]);
   const [selectedProductType, setSelectedProductType] = useState('');
@@ -50,31 +47,27 @@ const Faq = () => {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [answerStyles, setAnswerStyles] = useState({});
-  
-  const { getFaqList } = useFaqStore();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // API 요청을 위한 useApi 훅 사용
-  const {
-    data: faqResponse,
-    loading: apiLoading,
-    error: apiError,
-    updateParams,
-  } = useApi('/faq', { 
-    productType: selectedProductType,
-    keyword: searchKeyword
-  });
+  const { faqs, loading, error, getFaqList, searchFaqs, filterFaqsByCategory } = useFaqStore();
 
-  // FAQ 데이터 추출
-  const faqData = faqResponse?.data || [];
-  const filteredFaqs = faqData;
+  // FAQ 데이터 가져오기
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        if (searchKeyword) {
+          await searchFaqs(searchKeyword);
+        } else if (selectedProductType) {
+          await filterFaqsByCategory(selectedProductType);
+        } else {
+          await getFaqList();
+        }
+      } catch (err) {
+        console.error('Error fetching FAQs:', err);
+      }
+    };
 
-  // 검색 옵션 설정
-  const searchOptions = productTypes.map(type => ({
-    value: type,
-    label: type
-  }));
+    fetchFaqs();
+  }, [getFaqList, searchFaqs, filterFaqsByCategory, searchKeyword, selectedProductType]);
 
   // URL 파라미터에서 productType 가져오기
   useEffect(() => {
@@ -83,38 +76,16 @@ const Faq = () => {
       setSelectedProductType(productTypeFromUrl);
       setFormProductType(productTypeFromUrl);
     }
-  }, [searchParams, location]);
+  }, [searchParams]);
 
-  // 검색 조건 변경 시 API 파라미터 업데이트
-  useEffect(() => {
-    updateParams({ 
-      productType: selectedProductType,
-      keyword: searchKeyword
-    });
-  }, [selectedProductType, searchKeyword, updateParams]);
-
+  // FAQ 스타일 초기화
   useEffect(() => {
     const initialStyles = {};
-    faqData.forEach(faq => {
+    faqs.forEach(faq => {
       initialStyles[faq.id] = faqStyles.hidden;
     });
     setAnswerStyles(initialStyles);
-  }, []);
-
-  useEffect(() => {
-    const fetchFaqs = async () => {
-      try {
-        await getFaqList();
-      } catch (err) {
-        setError('FAQ를 불러오는 중 오류가 발생했습니다.');
-        console.error('Error fetching FAQs:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFaqs();
-  }, [getFaqList]);
+  }, [faqs]);
 
   const toggleQuestion = (id) => {
     const isActive = activeQuestions.includes(id);
@@ -158,49 +129,34 @@ const Faq = () => {
     setSearchParams({});
   };
 
-  const totalPages = Math.ceil(filteredFaqs.length / ITEMS_PER_PAGE);
-  
-  const currentFaqs = filteredFaqs.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE, 
-    currentPage * ITEMS_PER_PAGE
-  );
-
   const handleCategoryClick = (type) => {
     setFormProductType(type);
     setSelectedProductType(type);
     
-    // Update URL with the selected product type
     if (type === '통합') {
-      // 통합인 경우 파라미터 제거
       setSearchParams({});
     } else {
-      // 특정 제품 카테고리인 경우 URL 파라미터 설정
       setSearchParams({ productType: type });
     }
     
-    // FAQ 아코디언 초기화
     setActiveQuestions([]);
     const resetStyles = {};
-    faqData.forEach(faq => {
-      resetStyles[faq.id] = faqStyles.hidden;
-    });
     setAnswerStyles(resetStyles);
   };
 
   const handlePageChange = (page) => {
     setActiveQuestions([]);
-    
     const resetStyles = {};
-    faqData.forEach(faq => {
-      resetStyles[faq.id] = faqStyles.hidden;
-    });
     setAnswerStyles(resetStyles);
-    
     setCurrentPage(page);
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  const totalPages = Math.ceil(faqs.length / ITEMS_PER_PAGE);
+  
+  const currentFaqs = faqs.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div id="sub-container">
@@ -258,7 +214,7 @@ const Faq = () => {
           </div>
 
           <SearchForm
-            searchOptions={searchOptions}
+            searchOptions={productTypes}
             searchKey={formProductType}
             searchValue={formSearchKeyword}
             onSearchKeyChange={setFormProductType}
@@ -269,84 +225,81 @@ const Faq = () => {
             formId="faqSearchForm"
           />
 
-          <p className="total" style={{ margin: '15px 0' }}>
-            총 {filteredFaqs.length}개의 자주묻는 질문이 있습니다.
-            {searchKeyword && ` (검색어: ${searchKeyword})`}
-          </p>
-
           <div className="faq-wrap">
-            <style jsx>{`
-              .faq-list tr.q {
-                cursor: pointer;
-                transition: background-color 0.3s;
-              }
-              .faq-list tr.q:hover {
-                background-color: #f9f9f9;
-              }
-              .faq-list tr.q.on {
-                background-color: #f5f5f5;
-              }
-              .faq-list tr.a {
-                transition: all 0.35s ease-out;
-              }
-            `}</style>
-            {apiLoading ? (
-              <div style={{ textAlign: 'center', padding: '30px 0' }}>
-                FAQ 데이터를 불러오는 중입니다...
-              </div>
-            ) : apiError ? (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: 'red' }}>
-                FAQ 데이터를 불러오는데 실패했습니다. 다시 시도해주세요.
-              </div>
-            ) : (
-              <table className="type1 faq-list">
-                <thead>
-                  <tr className="tit">
-                    <th scope="col" className="tit1">&nbsp;</th>
-                    <th scope="col" className="tit2">제품군</th>
-                    <th scope="col" className="tit3">질문</th>
+            <style>
+              {`
+                .faq-list tr.q {
+                  cursor: pointer;
+                  transition: background-color 0.3s;
+                }
+                .faq-list tr.q:hover {
+                  background-color: #f9f9f9;
+                }
+                .faq-list tr.q.on {
+                  background-color: #f5f5f5;
+                }
+                .faq-list tr.a {
+                  transition: all 0.35s ease-out;
+                }
+              `}
+            </style>
+            <table className="type1 faq-list">
+              <thead>
+                <tr className="tit">
+                  <th scope="col" className="tit1">&nbsp;</th>
+                  <th scope="col" className="tit2">제품군</th>
+                  <th scope="col" className="tit3">질문</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="3" style={{ textAlign: 'center', padding: '30px 0' }}>
+                      FAQ 데이터를 불러오는 중입니다...
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {currentFaqs.length > 0 ? (
-                    currentFaqs.map((faq) => (
-                      <React.Fragment key={faq.id}>
-                        <tr 
-                          className={`q ${activeQuestions.includes(faq.id) ? 'on' : ''}`} 
-                          onClick={() => toggleQuestion(faq.id)}
-                        >
-                          <td className="lb">Q</td>
-                          <td className="tit">{faq.productType}</td>
-                          <td className="txt"><span>{faq.question}</span></td>
-                        </tr>
-                        <tr 
-                          className="a" 
-                          style={answerStyles[faq.id] || faqStyles.hidden}
-                        >
-                          <td className="lb">A</td>
-                          <td colSpan="2" className="acts" dangerouslySetInnerHTML={{ 
-                            __html: DOMPurify.sanitize(faq.answer, {
-                              ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'img', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-                              ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style'],
-                              ALLOW_DATA_ATTR: false
-                            })
-                          }}></td>
-                        </tr>
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="3" style={{ textAlign: 'center', padding: '30px 0' }}>
-                        검색 결과가 없습니다.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            )}
+                ) : error ? (
+                  <tr>
+                    <td colSpan="5" className="tac">데이터를 불러오는데 실패했습니다. {error}</td>
+                  </tr>
+                ) : currentFaqs.length > 0 ? (
+                  currentFaqs.map((faq) => (
+                    <React.Fragment key={faq.id}>
+                      <tr 
+                        className={`q ${activeQuestions.includes(faq.id) ? 'on' : ''}`} 
+                        onClick={() => toggleQuestion(faq.id)}
+                      >
+                        <td className="lb">Q</td>
+                        <td className="tit">{faq.productType}</td>
+                        <td className="txt"><span>{faq.question}</span></td>
+                      </tr>
+                      <tr 
+                        className="a" 
+                        style={answerStyles[faq.id] || faqStyles.hidden}
+                      >
+                        <td className="lb">A</td>
+                        <td colSpan="2" className="acts" dangerouslySetInnerHTML={{ 
+                          __html: DOMPurify.sanitize(faq.answer, {
+                            ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'img', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+                            ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style'],
+                            ALLOW_DATA_ATTR: false
+                          })
+                        }}></td>
+                      </tr>
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" style={{ textAlign: 'center', padding: '30px 0' }}>
+                      검색 결과가 없습니다.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
 
-          {filteredFaqs.length > 0 && (
+          {!error && faqs.length > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

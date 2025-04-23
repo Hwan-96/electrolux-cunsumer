@@ -88,8 +88,13 @@ axiosInstance.interceptors.response.use(
 );
 
 // API 요청 메서드 추가
+const originalGet = axiosInstance.get;
+const originalPost = axiosInstance.post;
+const originalPut = axiosInstance.put;
+const originalDelete = axiosInstance.delete;
+
 axiosInstance.get = async (url, params = {}, config = {}) => {
-  const response = await axiosInstance.get(url, {
+  const response = await originalGet(url, {
     params,
     ...defaultConfig,
     ...config
@@ -98,7 +103,7 @@ axiosInstance.get = async (url, params = {}, config = {}) => {
 };
 
 axiosInstance.post = async (url, data = {}, config = {}) => {
-  const response = await axiosInstance.post(url, data, {
+  const response = await originalPost(url, data, {
     ...defaultConfig,
     ...config
   });
@@ -106,7 +111,7 @@ axiosInstance.post = async (url, data = {}, config = {}) => {
 };
 
 axiosInstance.put = async (url, data = {}, config = {}) => {
-  const response = await axiosInstance.put(url, data, {
+  const response = await originalPut(url, data, {
     ...defaultConfig,
     ...config
   });
@@ -114,7 +119,7 @@ axiosInstance.put = async (url, data = {}, config = {}) => {
 };
 
 axiosInstance.delete = async (url, config = {}) => {
-  const response = await axiosInstance.delete(url, {
+  const response = await originalDelete(url, {
     ...defaultConfig,
     ...config
   });

@@ -56,22 +56,9 @@ const Popup = ({ isOpen, onClose, children }) => {
       // 팝업이 열릴 때 body 스크롤 방지
       document.body.style.overflow = 'hidden';
       
-      // 원래 padding-right 값 저장
-      const originalPaddingRight = document.body.style.paddingRight;
-      
-      // 스크롤바 너비 계산
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      
-      // 스크롤바 너비만큼 padding-right 추가 (레이아웃 이동 방지)
-      if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = `${scrollbarWidth}px`;
-      }
-      
-      // 클린업 함수
       return () => {
         // 팝업이 닫힐 때 원래 상태로 복원
         document.body.style.overflow = '';
-        document.body.style.paddingRight = originalPaddingRight;
       };
     }
   }, [isOpen]);

@@ -7,7 +7,7 @@ import { sanitizeInput } from '@/utils/inputValidation';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login, loginAsAdmin } = useAuthStore();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -30,14 +30,23 @@ const Login = () => {
     setLoading(true);
     
     try {
-      await login(formData.username, formData.password);
-      navigate('/');
+      const result = await login(formData.username, formData.password);
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.message || '로그인에 실패했습니다.');
+      }
     } catch (err) {
       console.error('로그인 오류:', err);
-      setError('로그인에 실패했습니다. 다시 시도해주세요.');
+      setError('로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAdminLogin = () => {
+    loginAsAdmin();
+    navigate('/mng');
   };
 
   const handleEnterKey = (e) => {
@@ -102,19 +111,26 @@ const Login = () => {
                     {loading ? <Loading text="로그인 중" showText={true} /> : '로그인'}
                   </button>
 
+                  <button 
+                    className="admin_login_btn"
+                    onClick={handleAdminLogin}
+                  >
+                    관리자 로그인 (테스트)
+                  </button>
+
                   <ul className="mem-menu">
                     <li>
-                      <a href="https://member.electroluxconsumer.co.kr/register" target="_blank" rel="noopener noreferrer">
+                      <a href="" rel="noopener noreferrer" onClick={() => navigate('/join/agreement')}>
                         회원가입
                       </a>
                     </li>
                     <li>
-                      <a href="https://member.electroluxconsumer.co.kr/login/?contents=find_id" target="_blank" rel="noopener noreferrer">
+                      <a href="" rel="noopener noreferrer" onClick={() => navigate('/find-id')}>
                         아이디찾기
                       </a>
                     </li>
                     <li>
-                      <a href="https://member.electroluxconsumer.co.kr/login/?contents=find_pw" target="_blank" rel="noopener noreferrer">
+                      <a href="" rel="noopener noreferrer" onClick={() => navigate('/find-password')}>
                         비밀번호 찾기
                       </a>
                     </li>

@@ -48,7 +48,10 @@ const useAuthStore = create(
 
             set({
               isLoggedIn: true,
-              userInfo,
+              userInfo: {
+                ...userInfo,
+                type: userInfo.type || 'user'
+              },
               lastActivity: Date.now(),
               showLogoutPrompt: false
             });
@@ -61,6 +64,23 @@ const useAuthStore = create(
           console.error('로그인 중 오류:', error);
           return { success: false, message: '로그인 중 오류가 발생했습니다.' };
         }
+      },
+
+      // 관리자 로그인 시뮬레이션
+      loginAsAdmin: () => {
+        set({
+          isLoggedIn: true,
+          userInfo: {
+            id: 'admin',
+            username: 'admin',
+            name: '관리자',
+            type: 'admin'
+          },
+          lastActivity: Date.now(),
+          showLogoutPrompt: false
+        });
+        get().startAutoLogout();
+        return { success: true, message: '관리자로 로그인되었습니다.' };
       },
 
       // 로그아웃

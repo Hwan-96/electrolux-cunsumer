@@ -2,9 +2,11 @@
 import logoMain from '@/images/logo.png';
 import logoFooter from '@/images/flogo.png';
 
+
 export const logoImages = {
   main: logoMain,
-  footer: logoFooter
+  footer: logoFooter,
+  join: logoFooter
 };
 
 import visualPc1 from '@/images/visual/pc/01.jpg';

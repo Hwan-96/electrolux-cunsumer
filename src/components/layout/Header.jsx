@@ -13,6 +13,7 @@ const Header = () => {
   // 디버깅을 위한 로그 추가
   console.log('Header - isLoggedIn:', isLoggedIn);
   console.log('Header - userInfo:', userInfo);
+  console.log('Header - isAdmin:', userInfo?.type === 'admin');
 
   const toggleGnb = () => setIsGnbOpen(!isGnbOpen);
   const toggleSearch = () => setIsSearchOpen(!isSearchOpen);
@@ -66,7 +67,7 @@ const Header = () => {
               // 로그인된 경우
               <ul>
                 {userInfo?.type === 'admin' && (
-                  <li><Link to="/admin">관리자페이지</Link></li>
+                  <li><Link to="/mng">관리자페이지</Link></li>
                 )}
                 <li>
                   <a href="https://member.electroluxconsumer.co.kr/mypage/?contents=mypage_info" target="_blank" rel="noopener noreferrer">
@@ -80,11 +81,7 @@ const Header = () => {
               // 로그인되지 않은 경우
               <ul>
                 <li><Link to="/login">로그인</Link></li>
-                <li>
-                  <a href="https://member.electroluxconsumer.co.kr/register" target="_blank" rel="noopener noreferrer">
-                    회원가입
-                  </a>
-                </li>
+                <li><Link to="/join/agreement">회원가입</Link></li>
               </ul>
             )}
           </div>
@@ -193,11 +190,7 @@ const Header = () => {
                   // 로그인되지 않은 경우
                   <>
                     <li><Link to="/login">로그인</Link></li>
-                    <li>
-                      <a href="https://member.electroluxconsumer.co.kr/register" target="_blank" rel="noopener noreferrer">
-                        회원가입
-                      </a>
-                    </li>
+                    <li><Link to="/join/agreement">회원가입</Link></li>
                   </>
                 )}
               </ul>
