@@ -4,6 +4,7 @@ import { Button, Card, Descriptions, Radio, Input } from 'antd';
 import { ButtonGroup, ButtonGroupLeft, ButtonGroupRight, CommonButton } from '@/components/admin/common/Button';
 import MOCK_DATA, { updateMockData, deleteMockData } from '@/components/admin/mock/MOCK_Counseling';
 import useDetail from '@/hooks/useDetail';
+import QuillEditor from '@/components/admin/common/QuillEditor';
 
 const CounselingDetail = () => {
   const { id } = useParams();
@@ -36,7 +37,11 @@ const CounselingDetail = () => {
   return (
     <>
       <Card style={{ marginBottom: '20px' }}>
-        <Descriptions bordered column={1}>
+          <Descriptions
+            bordered column={1}
+            labelStyle={{ width: '10%' }}
+            contentStyle={{ width: '90%' }}
+          >
           <Descriptions.Item label="처리상태">
             <Radio.Group value={status} onChange={handleStatusChange}>
               <Radio value="completed">답변완료</Radio>
@@ -65,11 +70,12 @@ const CounselingDetail = () => {
             {detail.content}
           </Descriptions.Item>
           <Descriptions.Item label="답변">
-            <Input.TextArea 
-              rows={4} 
+            <QuillEditor
               value={answer}
               onChange={handleAnswerChange}
               placeholder="답변을 입력하세요"
+              height="300px"
+              editorHeight="250px"
             />
           </Descriptions.Item>
         </Descriptions>

@@ -11,9 +11,9 @@ const Header = () => {
   const { isLoggedIn, userInfo, logout } = useAuthStore();
 
   // 디버깅을 위한 로그 추가
-  console.log('Header - isLoggedIn:', isLoggedIn);
-  console.log('Header - userInfo:', userInfo);
-  console.log('Header - isAdmin:', userInfo?.type === 'admin');
+  // console.log('Header - isLoggedIn:', isLoggedIn);
+  // console.log('Header - userInfo:', userInfo);
+  // console.log('Header - isAdmin:', userInfo?.type === 'admin');
 
   const toggleGnb = () => setIsGnbOpen(!isGnbOpen);
   const toggleSearch = () => setIsSearchOpen(!isSearchOpen);

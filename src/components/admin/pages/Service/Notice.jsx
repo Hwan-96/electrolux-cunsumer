@@ -63,10 +63,7 @@ const Notice = () => {
       width: 200,
       align: 'center',
       render: (text) => (
-        // <Tag color={text === 'show' ? 'blue' : 'red'}>{text === 'show' ? '노출' : '미노출'}</Tag>
-        text === 'hide' ? (
-          <Tag color="red">미노출</Tag>
-        ): null
+        <Tag color={text === 'show' ? 'blue' : 'red'}>{text === 'show' ? '노출' : '미노출'}</Tag>
       )
     },
     {

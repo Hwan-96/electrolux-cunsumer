@@ -17,7 +17,7 @@ const Button = styled.button`
   border: none;
 `;
 
-const DaumPost = ({ setAddress, buttonText = "주소 검색" }) => {
+const DaumPost = ({ setAddress, buttonText = "주소 검색", buttonId }) => {
   const open = useDaumPostcodePopup();
 
   const handleComplete = (data) => {
@@ -47,7 +47,7 @@ const DaumPost = ({ setAddress, buttonText = "주소 검색" }) => {
     open({ onComplete: handleComplete });
   };
 
-  return <Button type="button" onClick={handleClick}>{buttonText}</Button>;
+  return <Button id={buttonId} type="button" onClick={handleClick}>{buttonText}</Button>;
 };
 
 export default DaumPost;

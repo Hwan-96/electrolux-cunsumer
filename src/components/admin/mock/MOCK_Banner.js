@@ -4,151 +4,109 @@ let MOCK_DATA = [
     id: 1,
     key: '1',
     tab: 'main',
-    subTab: 'home',
     title: '무선청소기 신제품 출시',
-    imageUrl: '/images/banners/wireless_cleaner.jpg',
+    status: 'active', // 'active'(노출) 또는 'inactive'(미노출)
+    pcImageUrl: '/images/banners/pc/wireless_cleaner.jpg',
+    mobileImageUrl: '/images/banners/mobile/wireless_cleaner.jpg',
     linkUrl: '/products/cleaners/wireless',
-    startDate: '2023-10-01',
-    endDate: '2023-12-31',
-    status: 'active',
-    order: 1,
-    createdAt: '2023-09-15',
-    updatedAt: '2023-09-15'
+    linkTarget: '_self', // '_self' 또는 '_blank'
+    createdAt: '2023-09-15'
   },
   {
     id: 2,
     key: '2',
     tab: 'main',
-    subTab: 'home',
     title: '블랙프라이데이 세일',
-    imageUrl: '/images/banners/black_friday.jpg',
-    linkUrl: '/events/black-friday',
-    startDate: '2023-11-15',
-    endDate: '2023-11-30',
     status: 'active',
-    order: 2,
-    createdAt: '2023-10-20',
-    updatedAt: '2023-10-20'
+    pcImageUrl: '/images/banners/pc/black_friday.jpg',
+    mobileImageUrl: '/images/banners/mobile/black_friday.jpg',
+    linkUrl: '/events/black-friday',
+    linkTarget: '_blank',
+    createdAt: '2023-10-20'
   },
   {
     id: 3,
     key: '3',
     tab: 'main',
-    subTab: 'home',
     title: '겨울맞이 공기청정기 할인',
-    imageUrl: '/images/banners/air_purifier.jpg',
+    status: 'inactive',
+    pcImageUrl: '/images/banners/pc/air_purifier.jpg',
+    mobileImageUrl: '/images/banners/mobile/air_purifier.jpg',
     linkUrl: '/products/air-purifiers',
-    startDate: '2023-12-01',
-    endDate: '2024-01-31',
-    status: 'scheduled',
-    order: 3,
-    createdAt: '2023-11-10',
-    updatedAt: '2023-11-10'
+    linkTarget: '_self',
+    createdAt: '2023-11-10'
   },
   {
     id: 4,
     key: '4',
     tab: 'main',
-    subTab: 'product',
     title: '스마트 인덕션',
-    imageUrl: '/images/banners/induction.jpg',
-    linkUrl: '/products/kitchen/induction',
-    startDate: '2023-10-01',
-    endDate: '2023-12-31',
     status: 'active',
-    order: 1,
-    createdAt: '2023-09-20',
-    updatedAt: '2023-09-20'
+    pcImageUrl: '/images/banners/pc/induction.jpg',
+    mobileImageUrl: '/images/banners/mobile/induction.jpg',
+    linkUrl: '/products/kitchen/induction',
+    linkTarget: '_self',
+    createdAt: '2023-09-20'
   },
   {
     id: 5,
     key: '5',
     tab: 'main',
-    subTab: 'product',
     title: '프리미엄 냉장고',
-    imageUrl: '/images/banners/refrigerator.jpg',
-    linkUrl: '/products/kitchen/refrigerator',
-    startDate: '2023-11-01',
-    endDate: '2024-01-31',
     status: 'active',
-    order: 2,
-    createdAt: '2023-10-15',
-    updatedAt: '2023-10-15'
+    pcImageUrl: '/images/banners/pc/refrigerator.jpg',
+    mobileImageUrl: '/images/banners/mobile/refrigerator.jpg',
+    linkUrl: '/products/kitchen/refrigerator',
+    linkTarget: '_blank',
+    createdAt: '2023-10-15'
   },
   {
     id: 6,
     key: '6',
     tab: 'sub',
-    subTab: 'cleaners',
     title: '스틱청소기 베스트셀러',
-    imageUrl: '/images/banners/stick_cleaner.jpg',
-    linkUrl: '/products/cleaners/stick',
-    startDate: '2023-09-01',
-    endDate: '2023-12-31',
     status: 'active',
-    order: 1,
-    createdAt: '2023-08-20',
-    updatedAt: '2023-08-20'
+    pcImageUrl: '/images/banners/pc/stick_cleaner.jpg',
+    mobileImageUrl: '/images/banners/mobile/stick_cleaner.jpg',
+    linkUrl: '/products/cleaners/stick',
+    linkTarget: '_self',
+    createdAt: '2023-08-20'
   },
   {
     id: 7,
     key: '7',
     tab: 'sub',
-    subTab: 'cleaners',
     title: '로봇청소기 특별 할인',
-    imageUrl: '/images/banners/robot_cleaner.jpg',
-    linkUrl: '/products/cleaners/robot',
-    startDate: '2023-10-15',
-    endDate: '2023-12-15',
     status: 'active',
-    order: 2,
-    createdAt: '2023-09-30',
-    updatedAt: '2023-09-30'
+    pcImageUrl: '/images/banners/pc/robot_cleaner.jpg',
+    mobileImageUrl: '/images/banners/mobile/robot_cleaner.jpg',
+    linkUrl: '/products/cleaners/robot',
+    linkTarget: '_blank',
+    createdAt: '2023-09-30'
   },
   {
     id: 8,
     key: '8',
     tab: 'sub',
-    subTab: 'kitchen',
     title: '식기세척기 연말 할인',
-    imageUrl: '/images/banners/dishwasher.jpg',
+    status: 'inactive',
+    pcImageUrl: '/images/banners/pc/dishwasher.jpg',
+    mobileImageUrl: '/images/banners/mobile/dishwasher.jpg',
     linkUrl: '/products/kitchen/dishwasher',
-    startDate: '2023-12-01',
-    endDate: '2023-12-31',
-    status: 'scheduled',
-    order: 1,
-    createdAt: '2023-11-15',
-    updatedAt: '2023-11-15'
+    linkTarget: '_self',
+    createdAt: '2023-11-15'
   },
   {
     id: 9,
     key: '9',
     tab: 'sub',
-    subTab: 'living',
     title: '공기청정기 특가',
-    imageUrl: '/images/banners/air_purifier_sale.jpg',
+    status: 'active',
+    pcImageUrl: '/images/banners/pc/air_purifier_sale.jpg',
+    mobileImageUrl: '/images/banners/mobile/air_purifier_sale.jpg',
     linkUrl: '/products/living/air-purifier',
-    startDate: '2023-11-01',
-    endDate: '2023-12-31',
-    status: 'active',
-    order: 1,
-    createdAt: '2023-10-20',
-    updatedAt: '2023-10-20'
-  },
-  {
-    id: 10,
-    key: '10',
-    tab: 'event',
-    subTab: 'promotion',
-    title: '신규 회원 10% 할인',
-    imageUrl: '/images/banners/new_member.jpg',
-    linkUrl: '/events/new-member',
-    startDate: '2023-01-01',
-    endDate: '2023-12-31',
-    status: 'active',
-    order: 1,
-    createdAt: '2023-01-01',
-    updatedAt: '2023-01-01'
+    linkTarget: '_blank',
+    createdAt: '2023-10-20'
   }
 ];
 
@@ -156,38 +114,20 @@ let MOCK_DATA = [
 export const TAB_OPTIONS = [
   { value: 'all', label: '전체' },
   { value: 'main', label: '메인' },
-  { value: 'sub', label: '서브' },
-  { value: 'event', label: '이벤트' }
+  { value: 'sub', label: '서브' }
 ];
-
-// 서브 탭 정보
-export const SUBTAB_OPTIONS = {
-  main: [
-    { value: 'all', label: '전체' },
-    { value: 'home', label: '홈' },
-    { value: 'product', label: '제품' },
-    { value: 'event', label: '이벤트' }
-  ],
-  sub: [
-    { value: 'all', label: '전체' },
-    { value: 'cleaners', label: '청소기' },
-    { value: 'kitchen', label: '주방가전' },
-    { value: 'living', label: '생활가전' }
-  ],
-  event: [
-    { value: 'all', label: '전체' },
-    { value: 'promotion', label: '프로모션' },
-    { value: 'seasonal', label: '시즌' }
-  ]
-};
 
 // 상태 옵션
 export const STATUS_OPTIONS = [
   { value: 'all', label: '전체' },
-  { value: 'active', label: '활성화' },
-  { value: 'inactive', label: '비활성화' },
-  { value: 'scheduled', label: '예약됨' },
-  { value: 'expired', label: '만료됨' }
+  { value: 'active', label: '노출' },
+  { value: 'inactive', label: '미노출' }
+];
+
+// 링크 타켓 옵션
+export const LINK_TARGET_OPTIONS = [
+  { value: '_self', label: '현재 창' },
+  { value: '_blank', label: '새 창' }
 ];
 
 // 전체 배너 데이터 가져오기
@@ -195,18 +135,18 @@ export const getBanners = () => {
   return [...MOCK_DATA];
 };
 
+// Mock 데이터 가져오기 함수
+export const getMockData = () => {
+  return [...MOCK_DATA];
+};
+
 // 배너 검색 함수
 export const searchBanners = (data, params) => {
-  const { searchType, searchValue, status, tab, subTab } = params;
+  const { searchType, searchValue, status, tab } = params;
   
   return data.filter(item => {
     // 탭 필터링
     if (tab && tab !== 'all' && item.tab !== tab) {
-      return false;
-    }
-    
-    // 서브 탭 필터링
-    if (subTab && subTab !== 'all' && item.subTab !== subTab) {
       return false;
     }
     
@@ -241,7 +181,6 @@ export const addBanner = (bannerData) => {
     id: newId,
     key: newId.toString(),
     createdAt: new Date().toISOString().split('T')[0],
-    updatedAt: new Date().toISOString().split('T')[0],
     ...bannerData
   };
   
@@ -255,8 +194,7 @@ export const updateBanner = (id, bannerData) => {
   if (index !== -1) {
     MOCK_DATA[index] = {
       ...MOCK_DATA[index],
-      ...bannerData,
-      updatedAt: new Date().toISOString().split('T')[0]
+      ...bannerData
     };
   }
   return [...MOCK_DATA];

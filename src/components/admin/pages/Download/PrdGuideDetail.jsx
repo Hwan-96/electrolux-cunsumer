@@ -10,7 +10,6 @@ const PrdGuideDetail = () => {
       updateData={updateMockData}
       deleteData={deleteMockData}
       getDataById={getMockDataById}
-      useRichEditor={true}
       filePathField="filePath"
     />
   );

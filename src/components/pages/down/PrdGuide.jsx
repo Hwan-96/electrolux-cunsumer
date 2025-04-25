@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
 import fileIco from '@/images/ico-file.png';
-import useApi from '@/utils/useApi';
+import useDownloadStore from '@/stores/downLoadStore';
 
 const PrdGuide = () => {
+  const navigate = useNavigate();
+  
   // 상태 관리
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -20,28 +22,17 @@ const PrdGuide = () => {
   const [availableProductNames, setAvailableProductNames] = useState([{ value: '', label: '제품명 선택' }]);
   const [availableModelNames, setAvailableModelNames] = useState([{ value: '', label: '모델명 선택' }]);
 
-  // API 요청을 위한 useApi 훅 사용
+  // 다운로드 스토어 사용
   const {
-    data: apiResponse,
+    prdGuideList: products,
+    prdGuideMeta: meta,
     loading,
     error,
-    updateParams
-  } = useApi('/product-guides', {
-    page: currentPage,
-    limit: itemsPerPage,
-    ...searchParams
-  });
+    getPrdGuideList
+  } = useDownloadStore();
 
-  // API로부터 데이터 추출
-  const products = apiResponse?.data || [];
-  const totalItems = apiResponse?.meta?.total || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  // 옵션 데이터를 가져오는 API 호출
-  const { 
-    data: optionsData,
-    loading: optionsLoading
-  } = useApi('/product-options', {}, true);
+  // 총 페이지 수 계산
+  const totalPages = meta?.totalPages || 0;
 
   // 옵션 데이터 관리
   const [options, setOptions] = useState({
@@ -50,13 +41,92 @@ const PrdGuide = () => {
     productNames: {},
     modelNames: {}
   });
+  
+  // 옵션 데이터 로딩 상태
+  const [optionsLoading, setOptionsLoading] = useState(false);
 
-  // 옵션 데이터가 로드되면 상태 업데이트
+  // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    if (optionsData) {
-      setOptions(optionsData);
+    const fetchInitialData = async () => {
+      await getPrdGuideList({
+        page: 1,
+        limit: itemsPerPage
+      });
+    };
+    
+    fetchInitialData();
+  }, [getPrdGuideList, itemsPerPage]);
+
+  // 페이지 변경 시 데이터 로드
+  useEffect(() => {
+    // 첫 번째 useEffect에서 이미 처리했으므로 페이지가 1보다 클 때만 호출
+    if (currentPage > 1) {
+      const fetchData = async () => {
+        await getPrdGuideList({
+          page: currentPage,
+          limit: itemsPerPage,
+          ...searchParams
+        });
+      };
+      
+      fetchData();
     }
-  }, [optionsData]);
+  }, [currentPage, getPrdGuideList, itemsPerPage, searchParams]);
+
+  // 옵션 데이터 로드 (임시 데이터)
+  useEffect(() => {
+    const fetchOptions = async () => {
+      setOptionsLoading(true);
+      try {
+        // 실제 API 연동 시 이 부분을 변경해야 함
+        const mockOptionsData = {
+          brands: [
+            { value: '', label: '브랜드 선택' },
+            { value: 'Electrolux', label: 'Electrolux' },
+            { value: 'AEG', label: 'AEG' }
+          ],
+          categories: [
+            { value: '', label: '제품군 선택' },
+            { value: 'stick', label: '스틱청소기' },
+            { value: 'vacuum', label: '진공청소기' },
+            { value: 'robot', label: '로봇청소기' },
+            { value: 'consumable', label: '소모품' }
+          ],
+          productNames: {
+            'stick': [
+              { value: '', label: '제품명 선택' },
+              { value: 'well-q6', label: 'Well Q6' },
+              { value: 'well-q7', label: 'Well Q7' },
+              { value: 'well-q8', label: 'Well Q8' }
+            ],
+            'vacuum': [
+              { value: '', label: '제품명 선택' },
+              { value: 'pure-c9', label: 'Pure C9' }
+            ]
+          },
+          modelNames: {
+            'well-q6': [
+              { value: '', label: '모델명 선택' },
+              { value: 'EFP91835', label: 'EFP91835' },
+              { value: 'EFP91836', label: 'EFP91836' }
+            ],
+            'pure-c9': [
+              { value: '', label: '모델명 선택' },
+              { value: 'PC91-4MG', label: 'PC91-4MG' }
+            ]
+          }
+        };
+        
+        setOptions(mockOptionsData);
+      } catch (error) {
+        console.error('옵션 데이터 로드 중 오류:', error);
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+    
+    fetchOptions();
+  }, []);
 
   // 카테고리 변경 시 제품명 옵션 업데이트
   useEffect(() => {
@@ -87,16 +157,12 @@ const PrdGuide = () => {
     }
   }, [searchParams.productName, options.modelNames]);
 
-  // 페이지 변경 시 데이터 재요청
-  useEffect(() => {
-    updateParams({ page: currentPage });
-  }, [currentPage, updateParams]);
-
   // 검색 처리
   const handleSearch = () => {
-    updateParams({
-      ...searchParams,
-      page: 1
+    getPrdGuideList({
+      page: 1,
+      limit: itemsPerPage,
+      ...searchParams
     });
     setCurrentPage(1); // 검색 시 첫 페이지로 이동
   };
@@ -121,9 +187,11 @@ const PrdGuide = () => {
     };
     setSearchParams(resetParams);
     setCurrentPage(1);
-    updateParams({
-      ...resetParams,
-      page: 1
+    
+    getPrdGuideList({
+      page: 1,
+      limit: itemsPerPage,
+      ...resetParams
     });
   };
 
@@ -132,11 +200,9 @@ const PrdGuide = () => {
     setCurrentPage(page);
   };
 
-  // 파일 다운로드 처리
-  const handleProductClick = (product) => {
-    console.log('다운로드 요청:', product);
-    // 파일 다운로드 로직은 실제 서버 API 연동시 구현
-    window.open(`/api/product-guides/download/${product.id}`, '_blank');
+  // 항목 클릭 처리 - 상세 페이지로 이동
+  const handleProductClick = (productId) => {
+    navigate(`/down/prd_guide/${productId}`);
   };
 
   return (
@@ -301,7 +367,7 @@ const PrdGuide = () => {
                       <tr 
                         key={product.id} 
                         style={{ cursor: 'pointer' }}
-                        onClick={() => handleProductClick(product)}
+                        onClick={() => handleProductClick(product.id)}
                       >
                         <td className="bln">{product.id}</td>
                         <td>{product.brand}</td>

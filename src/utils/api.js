@@ -2,12 +2,14 @@ import axios from 'axios';
 import mockApiService from './mockApi';
 import useAuthStore from '@/stores/authStore';
 import { sanitizeObject, generateCspHeader } from './security';
+import { getAllRegions, getAllCitiesByRegion } from '@/utils/regionData';
 
 // 개발 환경에서는 목 데이터 사용, 프로덕션에서는 실제 API 사용
 // import.meta.env는 Vite에서 환경 변수에 접근하는 방법
 const USE_MOCK = import.meta.env.DEV; // 개발 환경에서는 true, 프로덕션에서는 false
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// API 기본 URL 설정
+const API_BASE_URL = 'http://localhost:80';
 
 // API 요청 기본 설정
 const defaultConfig = {
@@ -21,16 +23,22 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: defaultConfig.timeout,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
     ...generateCspHeader()
   },
   withCredentials: true, // CSRF 토큰을 위한 설정
+  referrerPolicy: 'strict-origin-when-cross-origin', // Referrer Policy 설정
 });
 
 // 요청 인터셉터
 axiosInstance.interceptors.request.use(
   (config) => {
-    // 토큰은 httpOnly 쿠키에서 자동으로 전송되므로 별도로 설정하지 않음
+    // 토큰이 있으면 헤더에 추가
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     // XSS 방지를 위해 요청 데이터 sanitize
     if (config.data) {
       config.data = sanitizeObject(config.data);
@@ -128,6 +136,9 @@ axiosInstance.delete = async (url, config = {}) => {
 
 // API 요청 유틸리티
 const apiService = {
+  // axios 인스턴스 공개
+  axiosInstance,
+  
   // GET 요청
   get: async (url, params = {}, config = {}) => {
     const response = await axiosInstance.get(url, {
@@ -137,13 +148,14 @@ const apiService = {
     });
     return response.data;
   },
-
+  
   // POST 요청
   post: async (url, data = {}, config = {}) => {
     const response = await axiosInstance.post(url, data, {
       ...defaultConfig,
       ...config
     });
+    console.log('로그인 응답:', response);
     return response.data;
   },
 
@@ -183,7 +195,7 @@ const apiService = {
   // 지역 목록 조회
   getRegions: async () => {
     if (USE_MOCK) {
-      return mockApiService.getRegions();
+      return { data: getAllRegions() };
     }
     
     try {
@@ -197,7 +209,7 @@ const apiService = {
   // 시군구 목록 조회
   getCitiesByRegion: async (region) => {
     if (USE_MOCK) {
-      return mockApiService.getCitiesByRegion(region);
+      return { data: getAllCitiesByRegion(region).map(city => ({ value: city, label: city })) };
     }
     
     try {
@@ -245,6 +257,7 @@ const apiService = {
     return { success: true, message: '로그아웃되었습니다.' };
   },
   
+  /* 
   // 테스트 사용자 로그인 함수
   loginTestUser: () => {
     const testToken = 'test_user_token';
@@ -264,6 +277,7 @@ const apiService = {
     axiosInstance.defaults.headers.Authorization = `Bearer ${adminToken}`;
     return { success: true, message: '관리자로 로그인되었습니다.' };
   },
+  */
   
   // 현재 로그인한 사용자 ID 가져오기
   getCurrentUserId: () => {

@@ -5,6 +5,7 @@ import { ButtonGroup, ButtonGroupLeft, ButtonGroupRight, CommonButton } from '@/
 import { getMockData, updateMockData, deleteMockData, addMockData } from '@/components/admin/mock/MOCK_Notice';
 import useDetail from '@/hooks/useDetail';
 import { UploadOutlined } from '@ant-design/icons';
+import QuillEditor from '@/components/admin/common/QuillEditor';
 
 const NoticeDetail = () => {
   const { id } = useParams();
@@ -50,8 +51,8 @@ const NoticeDetail = () => {
     setNewItem({...newItem, title: e.target.value});
   };
 
-  const handleNewItemContentChange = (e) => {
-    setNewItem({...newItem, content: e.target.value});
+  const handleNewItemContentChange = (content) => {
+    setNewItem({...newItem, content: content});
   };
 
   const handleNewItemSave = () => {
@@ -93,7 +94,13 @@ const NoticeDetail = () => {
               <Input value={newItem.title} onChange={handleNewItemTitleChange} placeholder="제목을 입력하세요" />
             </Descriptions.Item>
             <Descriptions.Item label="내용">
-              <Input.TextArea value={newItem.content} onChange={handleNewItemContentChange} placeholder="내용을 입력하세요" />
+              <QuillEditor
+                value={newItem.content}
+                onChange={handleNewItemContentChange}
+                placeholder="내용을 입력하세요"
+                height="300px"
+                editorHeight="250px"
+              />
             </Descriptions.Item>
             <Descriptions.Item label="첨부파일">
               <Upload
@@ -132,7 +139,11 @@ const NoticeDetail = () => {
   return (
     <>
       <Card style={{ marginBottom: '20px' }}>
-        <Descriptions bordered column={1}>
+        <Descriptions
+          bordered column={1}
+          labelStyle={{ width: '10%' }}
+          contentStyle={{ width: '90%' }}
+        >
           <Descriptions.Item label="제품군">
             <Radio.Group value={status} onChange={handleStatusChange}>
               <Radio value="show">표시</Radio>
@@ -143,7 +154,13 @@ const NoticeDetail = () => {
             <Input value={detail.title} onChange={handleTitleChange} />
           </Descriptions.Item>
           <Descriptions.Item label="내용">
-            <Input.TextArea value={detail.content} onChange={handleContentChange} />
+            <QuillEditor
+              value={detail.content}
+              onChange={handleContentChange}
+              placeholder="내용을 입력하세요"
+              height="300px"
+              editorHeight="250px"
+            />
           </Descriptions.Item>
           <Descriptions.Item label="첨부파일">
             <Upload

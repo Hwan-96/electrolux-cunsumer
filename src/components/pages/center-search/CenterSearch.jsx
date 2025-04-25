@@ -1,40 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import CenterSearchOpts from './CenterSearchOpts';
 import LocalMap from './LocalMap';
 import CenterList from './CenterList';
-import apiService from '@/utils/api';
 
 const CenterSearch = () => {
-  // 지역 및 필터 상태 관리
-  const [selectedRegion, setSelectedRegion] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
-  const [cities, setCities] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // URL 파라미터 처리
+  const [searchParams] = useSearchParams();
   
-  // 지역 선택 시 시군구 목록 가져오기
-  useEffect(() => {
-    const fetchCities = async () => {
-      if (!selectedRegion || selectedRegion === '광역시/도') {
-        setCities([]);
-        return;
-      }
-      
-      try {
-        setLoading(true);
-        const response = await apiService.getCitiesByRegion(selectedRegion);
-        setCities(response.data || []);
-      } catch (err) {
-        console.error('시군구 목록 조회 실패:', err);
-        setCities([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchCities();
-  }, [selectedRegion]);
+  // 지역 및 필터 상태 관리
+  const [selectedRegion, setSelectedRegion] = useState(searchParams.get('region') || '');
+  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || '');
   
   // 지역 선택 변경 핸들러
   const handleRegionChange = (region) => {
@@ -63,8 +41,6 @@ const CenterSearch = () => {
               <CenterSearchOpts 
                 selectedRegion={selectedRegion}
                 selectedCity={selectedCity}
-                cities={cities}
-                loading={loading}
                 onRegionChange={handleRegionChange}
                 onCityChange={handleCityChange}
               />

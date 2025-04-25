@@ -4,9 +4,9 @@ import { updateMockData, deleteMockData, addMockData, getMockDataById } from '@/
 import { message, Modal } from 'antd';
 import { Button, Card, Descriptions, Input, Select } from 'antd';
 import { ButtonGroup, ButtonGroupLeft, ButtonGroupRight, CommonButton } from '@/components/admin/common/Button';
-import DaumPost from '@/components/common/popup/DaumPost';
 import { useNavigate } from 'react-router-dom';
 import useRegionStore from '@/components/admin/store/regionStore';
+import AddressInput from '@/components/admin/common/AddressInput';
 
 const CenterListDetail = () => {
   const { id } = useParams();
@@ -23,6 +23,8 @@ const CenterListDetail = () => {
     city: '',
     centerNm: '',
     centerAddr: '',
+    centerAddrDetail: '',
+    centerZipCode: '',
     centerTel: '',
     url: ''
   };
@@ -34,11 +36,27 @@ const CenterListDetail = () => {
     if (!isNewMode) {
       const fetchedDetail = getMockDataById(parseInt(id));
       setDetail(fetchedDetail);
+
+      // 주소 형식 파싱 (기존 "[우편번호] 주소" 형식에서 분리)
+      let centerZipCode = '';
+      let centerAddr = fetchedDetail.centerAddr;
+      let centerAddrDetail = '';
+
+      if (fetchedDetail.centerAddr) {
+        const zipMatch = fetchedDetail.centerAddr.match(/\[\s*(\d+)\s*\]\s*(.*)/);
+        if (zipMatch) {
+          centerZipCode = zipMatch[1];
+          centerAddr = zipMatch[2];
+        }
+      }
+
       setEditItem({
         region: fetchedDetail.region,
         city: fetchedDetail.city,
         centerNm: fetchedDetail.centerNm,
-        centerAddr: fetchedDetail.centerAddr,
+        centerAddr: centerAddr,
+        centerAddrDetail: centerAddrDetail,
+        centerZipCode: centerZipCode,
         centerTel: fetchedDetail.centerTel,
         url: fetchedDetail.url
       });
@@ -70,10 +88,16 @@ const CenterListDetail = () => {
   };
 
   const handleNewAddressChange = (addressData) => {
-    // addressData는 { zipCode, address, jibunAddress } 형태의 객체
-    // 주소 문자열 형식으로 변환하여 저장
-    const fullAddress = `[ ${addressData.zipCode} ] ${addressData.address}`;
-    setNewItem({...newItem, centerAddr: fullAddress});
+    setNewItem({
+      ...newItem, 
+      centerAddr: addressData.address,
+      centerZipCode: addressData.zipCode,
+      centerAddrDetail: ''
+    });
+  };
+
+  const handleNewAddrDetailChange = (value) => {
+    setNewItem({...newItem, centerAddrDetail: value});
   };
 
   // 수정 모드 이벤트 핸들러
@@ -98,8 +122,16 @@ const CenterListDetail = () => {
   };
 
   const handleEditAddressChange = (addressData) => {
-    const fullAddress = `[ ${addressData.zipCode} ] ${addressData.address}`;
-    setEditItem({...editItem, centerAddr: fullAddress});
+    setEditItem({
+      ...editItem, 
+      centerAddr: addressData.address,
+      centerZipCode: addressData.zipCode,
+      centerAddrDetail: ''
+    });
+  };
+
+  const handleEditAddrDetailChange = (value) => {
+    setEditItem({...editItem, centerAddrDetail: value});
   };
 
   const handleNewItemSave = () => {
@@ -134,7 +166,15 @@ const CenterListDetail = () => {
     }
 
     try {
-      addMockData(newItem);
+      // 주소 형식 변환
+      const formattedData = {
+        ...newItem,
+        centerAddr: newItem.centerZipCode ? 
+          `[ ${newItem.centerZipCode} ] ${newItem.centerAddr} ${newItem.centerAddrDetail || ''}` : 
+          newItem.centerAddr
+      };
+
+      addMockData(formattedData);
       message.success('등록되었습니다');
       navigate('/mng/svc/cntLst');
     } catch (error) {
@@ -175,7 +215,15 @@ const CenterListDetail = () => {
     }
 
     try {
-      updateMockData(parseInt(id), editItem);
+      // 주소 형식 변환
+      const formattedData = {
+        ...editItem,
+        centerAddr: editItem.centerZipCode ? 
+          `[ ${editItem.centerZipCode} ] ${editItem.centerAddr} ${editItem.centerAddrDetail || ''}` : 
+          editItem.centerAddr
+      };
+
+      updateMockData(parseInt(id), formattedData);
       message.success('수정되었습니다');
       navigate('/mng/svc/cntLst');
     } catch (error) {
@@ -216,7 +264,11 @@ const CenterListDetail = () => {
     return (
       <>
         <Card style={{ marginBottom: '20px' }}>
-          <Descriptions bordered column={1}>
+          <Descriptions
+            bordered column={1}
+            labelStyle={{ width: '10%' }}
+            contentStyle={{ width: '90%' }}
+          >
             <Descriptions.Item label="지역분류">
               광역시/도
               <Select 
@@ -239,11 +291,13 @@ const CenterListDetail = () => {
               <Input value={newItem.centerNm} onChange={handleNewCenterNameChange} placeholder="센터명을 입력하세요" />
             </Descriptions.Item>
             <Descriptions.Item label="주소">
-              <div style={{ display: 'flex', alignItems: 
-              'center' }}>
-                <Input value={newItem.centerAddr} placeholder="주소를 입력하세요" readOnly />
-                <DaumPost setAddress={handleNewAddressChange} />
-              </div>
+              <AddressInput
+                zipCode={newItem.centerZipCode}
+                address={newItem.centerAddr}
+                addressDetail={newItem.centerAddrDetail}
+                onAddressChange={handleNewAddressChange}
+                onAddressDetailChange={handleNewAddrDetailChange}
+              />
             </Descriptions.Item>
             <Descriptions.Item label="전화번호">
               <Input value={newItem.centerTel} onChange={handleNewCenterTelChange} placeholder="전화번호를 입력하세요" />
@@ -270,7 +324,11 @@ const CenterListDetail = () => {
   return (
     <>
       <Card style={{ marginBottom: '20px' }}>
-        <Descriptions bordered column={1}>
+        <Descriptions
+          bordered column={1}
+          labelStyle={{ width: '10%' }}
+          contentStyle={{ width: '90%' }}
+        >
           <Descriptions.Item label="지역분류">
             광역시/도
             <Select 
@@ -293,10 +351,13 @@ const CenterListDetail = () => {
             <Input value={editItem.centerNm} onChange={handleEditCenterNameChange} placeholder="센터명을 입력하세요" />
           </Descriptions.Item>
           <Descriptions.Item label="주소">
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Input value={editItem.centerAddr} placeholder="주소를 입력하세요" readOnly />
-              <DaumPost setAddress={handleEditAddressChange} />
-            </div>
+            <AddressInput
+              zipCode={editItem.centerZipCode}
+              address={editItem.centerAddr}
+              addressDetail={editItem.centerAddrDetail}
+              onAddressChange={handleEditAddressChange}
+              onAddressDetailChange={handleEditAddrDetailChange}
+            />
           </Descriptions.Item>
           <Descriptions.Item label="전화번호">
             <Input value={editItem.centerTel} onChange={handleEditCenterTelChange} placeholder="전화번호를 입력하세요" />

@@ -16,6 +16,8 @@ const NoticeDetail = () => {
   useEffect(() => {
     const fetchNotice = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const data = await getNoticeDetail(id);
         setNotice(data);
       } catch (err) {
@@ -112,7 +114,7 @@ const NoticeDetail = () => {
                 <dl className="tit-info">
                   <dt className="date">작성일</dt>
                   <dd className="date">
-                    {new Date(notice.createdAt).toLocaleDateString()}
+                    {notice.createdAt}
                   </dd>
                   <dt className="view">조회수</dt>
                   <dd className="view">

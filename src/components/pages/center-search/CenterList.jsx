@@ -20,10 +20,16 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
         setLoading(true);
         
         // 파라미터 설정
-        const params = {
-          region: selectedRegion,
-          city: selectedCity
-        };
+        const params = {};
+        
+        // 지역 또는 시군구가 선택된 경우에만 파라미터 추가
+        if (selectedRegion && selectedRegion !== '') {
+          params.region = selectedRegion;
+        }
+        
+        if (selectedCity && selectedCity !== '') {
+          params.city = selectedCity;
+        }
         
         // apiService를 통해 데이터 요청
         const response = await apiService.getServiceCenters(params);
@@ -39,6 +45,7 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
       }
     };
 
+    // 검색 시작
     fetchServiceCenters();
   }, [selectedRegion, selectedCity]);
 

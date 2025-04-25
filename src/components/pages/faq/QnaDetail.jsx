@@ -3,15 +3,16 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import Loading from '@/components/common/Loading';
-import apiService from '@/utils/api';
+import useQnaStore from '@/stores/qnaStore';
 
 const QnaDetail = () => {
   const { id } = useParams(); // URL 파라미터에서 ID 가져오기
   const navigate = useNavigate();
-  const [qnaData, setQnaData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // qnaStore에서 필요한 상태와 메서드 가져오기
+  const { currentQna, getQnaDetail } = useQnaStore();
   
   // 파일 다운로드 처리
   const handleDownload = (fileName) => {
@@ -34,21 +35,7 @@ const QnaDetail = () => {
         }
         
         console.log('문의 상세 조회 시작:', numericId);
-        const response = await apiService.getData(`/qna/${numericId}`);
-        console.log('문의 상세 응답:', response);
-        
-        // 응답 데이터 구조 확인 및 데이터 설정
-        if (!response) {
-          setError('문의 데이터를 불러올 수 없습니다.');
-          setLoading(false);
-          return;
-        }
-        
-        // mock API 환경에서는 response.data로 데이터가 오고
-        // 실제 API 환경에서는 response 자체가 데이터일 수 있음
-        const qnaItem = response.data || response;
-        
-        setQnaData(qnaItem);
+        await getQnaDetail(numericId);
         setError(null);
       } catch (err) {
         console.error('상담 상세 조회 에러:', err);
@@ -67,7 +54,7 @@ const QnaDetail = () => {
     };
     
     fetchQnaDetail();
-  }, [id, navigate]);
+  }, [id, navigate, getQnaDetail]);
   
   // 이전 목록으로 이동
   const handleBackToList = () => {
@@ -104,22 +91,22 @@ const QnaDetail = () => {
             <div className="error-container" style={{textAlign: 'center', padding: '50px 0', color: '#CC0000'}}>
               {error}
             </div>
-          ) : qnaData ? (
+          ) : currentQna ? (
             <div className="bd-view1">
               {/* 제목 영역 */}
               <div className="tit-area">
                 <h4 className="tit">
-                  {qnaData.title}
+                  {currentQna.title}
                 </h4>
                 <div className="bd-info-wrap">
                   <dl className="tit-info">
                     <dt className="date">작성일</dt>
                     <dd className="date">
-                      {qnaData.date}
+                      {currentQna.date}
                     </dd>
                     <dt className="state">상태</dt>
                     <dd className="state">
-                      {qnaData.answered ? '답변완료' : '답변대기중'}
+                      {currentQna.answered ? '답변완료' : '답변대기중'}
                     </dd>
                   </dl>
                 </div>
@@ -128,27 +115,27 @@ const QnaDetail = () => {
               {/* 문의 내용 영역 */}
               <div className="output-cts">
                 <p style={{ fontWeight: 'bold', margin: '0 0 30px 0' }}>
-                  ○ 문의 모델 : {qnaData.model}
+                  ○ 문의 모델 : {currentQna.model || '모델정보 없음'}
                 </p>
-                <p>{qnaData.content}</p>
+                <p>{currentQna.content}</p>
               </div>
               
               {/* 답변 내용 영역 (있는 경우에만 표시) */}
-              {qnaData.answered && qnaData.reply && (
+              {currentQna.answered && currentQna.reply && (
                 <>
                   <div className="admin-reply">
                     <p className="tit">답변</p>
-                    <p className="date">{qnaData.date}</p>
+                    <p className="date">{currentQna.answerDate || currentQna.date}</p>
                   </div>
-                  <p className="admin-reply-txt">{qnaData.reply}</p>
+                  <p className="admin-reply-txt">{currentQna.reply}</p>
                 </>
               )}
  
               {/* 첨부파일 영역 */}
-              {qnaData.files && qnaData.files.length > 0 && (
+              {currentQna.files && currentQna.files.length > 0 && (
                 <dl className="dl-tr down">
                   <dt>첨부파일</dt>
-                  {qnaData.files.map((file, index) => (
+                  {currentQna.files.map((file, index) => (
                     <dd key={index}>
                       <a href="#" onClick={(e) => { e.preventDefault(); handleDownload(file.fileName); }}>
                         {file.fileName} ({file.fileSize})

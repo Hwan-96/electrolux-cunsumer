@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, useLocation } from 'react-router-dom';
+import { Button, Dropdown, Modal, Form, Input, Typography, message } from 'antd';
+import { UserOutlined, LockOutlined, KeyOutlined } from '@ant-design/icons';
 import useAuthStore from '@/stores/authStore';
 import useMenuStore from '@/components/admin/store/menuStore';
+import { CommonButton } from '@/components/admin/common/Button';
+
+const { Text } = Typography;
 
 const HeaderContainer = styled.header`
   position: fixed;
@@ -113,6 +118,7 @@ const HeaderUser = styled.div`
   justify-content: flex-end;
   position: relative;
   width: 100%;
+  gap: 10px;
 
   button{
     width: 100%;
@@ -135,10 +141,37 @@ const HeaderUser = styled.div`
   }
 `;
 
+const UserIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  position: relative;
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+`;
+
+const StyledDropdown = styled(Dropdown)`
+  .ant-dropdown {
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
+`;
+
 const AdminHeader = () => {
   const { logout } = useAuthStore();
   const { setSelectedMenu } = useMenuStore();
   const location = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [form] = Form.useForm();
 
   // 현재 경로에 따라 메뉴 선택
   React.useEffect(() => {
@@ -156,6 +189,58 @@ const AdminHeader = () => {
     logout();
     window.location.href = '/';
   };
+
+  const showModal = () => {
+    setIsModalOpen(true);
+    setDropdownOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    form.resetFields();
+  };
+
+  const handleChangePassword = async (values) => {
+    try {
+      // 여기에 비밀번호 변경 API 호출
+      console.log('비밀번호 변경 요청:', values);
+      
+      if (values.newPassword !== values.confirmPassword) {
+        message.error('새 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+        return;
+      }
+      
+      // API 호출 성공 시
+      message.success('비밀번호가 성공적으로 변경되었습니다.');
+      setIsModalOpen(false);
+      form.resetFields();
+    } catch (error) {
+      console.error('비밀번호 변경 오류:', error);
+      message.error('비밀번호 변경에 실패했습니다.');
+    }
+  };
+
+  const validatePassword = (_, value) => {
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!value) {
+      return Promise.reject('비밀번호를 입력해주세요.');
+    }
+    if (!passwordRegex.test(value)) {
+      return Promise.reject('비밀번호는 영문, 숫자, 특수기호를 포함하여 8자리 이상이어야 합니다.');
+    }
+    return Promise.resolve();
+  };
+
+  const items = [
+    {
+      key: '1',
+      label: (
+        <div onClick={showModal}>
+          <LockOutlined /> 비밀번호 변경
+        </div>
+      ),
+    },
+  ];
 
   return (
     <HeaderContainer>
@@ -212,10 +297,88 @@ const AdminHeader = () => {
         </HeaderMiddle>
         <HeaderRight>
           <HeaderUser>
+            <Dropdown
+              menu={{ items }}
+              trigger={['click']}
+              open={dropdownOpen}
+              onOpenChange={(flag) => setDropdownOpen(flag)}
+              placement="bottomCenter"
+              getPopupContainer={(triggerNode) => triggerNode.parentNode}
+              overlayStyle={{ position: 'fixed' }}
+            >
+              <UserIcon>
+                <UserOutlined style={{ fontSize: '20px', color: '#354255' }} />
+              </UserIcon>
+            </Dropdown>
             <button onClick={handleLogout}>로그아웃</button>
           </HeaderUser>
         </HeaderRight>
       </HeaderWrap>
+
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <KeyOutlined style={{ marginRight: '8px' }} />
+            비밀번호 변경
+          </div>
+        }
+        open={isModalOpen}
+        onCancel={handleCancel}
+        footer={null}
+        width={400}
+      >
+        <Form
+          form={form}
+          name="changePassword"
+          onFinish={handleChangePassword}
+          layout="vertical"
+          style={{ marginTop: '20px' }}
+        >
+          <Form.Item
+            name="currentPassword"
+            label="기존 비밀번호"
+            rules={[{ required: true, message: '기존 비밀번호를 입력해주세요.' }]}
+          >
+            <Input.Password placeholder="기존 비밀번호 입력" />
+          </Form.Item>
+          <Form.Item
+            name="newPassword"
+            label="신규 비밀번호"
+            rules={[
+              { validator: validatePassword }
+            ]}
+          >
+            <Input.Password placeholder="신규 비밀번호 입력" />
+          </Form.Item>
+          <Form.Item
+            name="confirmPassword"
+            label="비밀번호 확인"
+            dependencies={['newPassword']}
+            rules={[
+              { required: true, message: '비밀번호 확인을 입력해주세요.' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('newPassword') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject('비밀번호가 일치하지 않습니다.');
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="비밀번호 확인 입력" />
+          </Form.Item>
+          
+          <Text type="secondary" style={{ display: 'block', marginBottom: '20px' }}>
+            비밀번호는 영문, 숫자, 특수기호를 포함하여 8자리 이상으로 구성해주세요.
+          </Text>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button onClick={handleCancel}>취소</Button>
+            <CommonButton type="primary" htmlType="submit">확인</CommonButton>
+          </div>
+        </Form>
+      </Modal>
     </HeaderContainer>
   );
 };

@@ -4,32 +4,13 @@ import { Button, Card, Descriptions, Radio, Input, Select, Modal, message } from
 import { ButtonGroup, ButtonGroupLeft, ButtonGroupRight, CommonButton } from '@/components/admin/common/Button';
 import { getMockDataById, updateMockData, deleteMockData } from '@/components/admin/mock/MOCK_MemberList';
 import styled from 'styled-components';
-import DaumPost from '@/components/common/popup/DaumPost';
 import useDetail from '@/hooks/useDetail';
+import AddressInput from '@/components/admin/common/AddressInput';
 
 const CardTitle = styled.h3`
   font-size: 18px;
   margin-bottom: 20px;
   font-weight: 600;
-`;
-
-const AddressWrapper = styled.div`
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-`;
-
-const AddressField = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-`;
-
-const ZipCodeInput = styled(Input)`
-  width: 100px;
 `;
 
 const TextValue = styled.div`
@@ -93,6 +74,11 @@ const MemberDetail = () => {
     }));
   };
 
+  // 상세 주소 변경 처리
+  const handleAddrDetailChange = (value) => {
+    handleLocalDataChange('memAddrDetail', value);
+  };
+
   // 저장 처리 (커스텀)
   const handleSave = () => {
     try {
@@ -120,7 +106,11 @@ const MemberDetail = () => {
     <>
       <Card style={{ marginBottom: '20px' }}>
         <CardTitle>기본정보</CardTitle>
-        <Descriptions bordered column={1}>
+          <Descriptions
+            bordered column={1}
+            labelStyle={{ width: '10%' }}
+            contentStyle={{ width: '90%' }}
+          >
           <Descriptions.Item label="회원구분">
             <TextValue>
               {detail.memTp === 'U' ? '울트라클럽' : '일반회원'}
@@ -142,26 +132,13 @@ const MemberDetail = () => {
             <TextValue>{detail.memEmail}</TextValue>
           </Descriptions.Item>
           <Descriptions.Item label="주소">
-            <AddressWrapper>
-              <AddressField>
-                <ZipCodeInput 
-                  value={localData.memZipCode}
-                  disabled
-                  placeholder="우편번호"
-                />
-                <DaumPost setAddress={handleAddressChange} />
-              </AddressField>
-              <Input 
-                value={localData.memAddr}
-                onChange={(e) => handleLocalDataChange('memAddr', e.target.value)}
-                placeholder="주소"
-              />
-              <Input 
-                value={localData.memAddrDetail || ''}
-                onChange={(e) => handleLocalDataChange('memAddrDetail', e.target.value)}
-                placeholder="상세주소를 입력하세요"
-              />
-            </AddressWrapper>
+            <AddressInput
+              zipCode={localData.memZipCode}
+              address={localData.memAddr}
+              addressDetail={localData.memAddrDetail}
+              onAddressChange={handleAddressChange}
+              onAddressDetailChange={handleAddrDetailChange}
+            />
           </Descriptions.Item>
           <Descriptions.Item label="SMS 수신동의">
             <Radio.Group

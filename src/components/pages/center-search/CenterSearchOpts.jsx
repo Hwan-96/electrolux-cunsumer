@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { regionData, getCitiesByRegion } from '@/utils/regionData';
 
 const Select = styled.select`
   width: 100%;
@@ -18,11 +19,35 @@ const Selects = styled.ul`
 const CenterSearchOpts = ({ 
   selectedRegion, 
   selectedCity, 
-  cities, 
-  loading,
   onRegionChange,
   onCityChange 
 }) => {
+  const [regions, setRegions] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  // 지역 데이터 로드
+  useEffect(() => {
+    setRegions([
+      { value: '', label: '광역시/도' },
+      ...regionData.filter(region => region.value !== '광역시/도')
+    ]);
+  }, []);
+  
+  // 선택된 지역에 따라 시군구 데이터 업데이트
+  useEffect(() => {
+    setLoading(true);
+    if (selectedRegion) {
+      const citiesForRegion = getCitiesByRegion(selectedRegion);
+      setCities([
+        { value: '', label: '시군구' },
+        ...citiesForRegion
+      ]);
+    } else {
+      setCities([{ value: '', label: '시군구' }]);
+    }
+    setLoading(false);
+  }, [selectedRegion]);
   
   const handleRegionChange = (e) => {
     onRegionChange(e.target.value);
@@ -50,27 +75,7 @@ const CenterSearchOpts = ({
               onChange={handleRegionChange}
               disabled={loading}
             >
-              <option value="">광역시/도</option>
-              {/* 광역시/도를 이미 선택한 경우 "광역시/도" 옵션을 제외 */}
-              {[
-                { value: '강원', label: '강원' },
-                { value: '경기', label: '경기' },
-                { value: '경남', label: '경남' },
-                { value: '경북', label: '경북' },
-                { value: '광주', label: '광주' },
-                { value: '대구', label: '대구' },
-                { value: '대전', label: '대전' },
-                { value: '부산', label: '부산' },
-                { value: '서울', label: '서울' },
-                { value: '세종', label: '세종' },
-                { value: '울산', label: '울산' },
-                { value: '인천', label: '인천' },
-                { value: '전남', label: '전남' },
-                { value: '전북', label: '전북' },
-                { value: '제주', label: '제주' },
-                { value: '충남', label: '충남' },
-                { value: '충북', label: '충북' }
-              ].map(region => (
+              {regions.map(region => (
                 <option key={region.value} value={region.value}>
                   {region.label}
                 </option>
@@ -83,9 +88,8 @@ const CenterSearchOpts = ({
               name="gu" 
               value={selectedCity}
               onChange={handleCityChange}
-              disabled={!selectedRegion || cities.length === 0 || loading}
+              disabled={!selectedRegion || cities.length <= 1 || loading}
             >
-              <option value="">시군구</option>
               {cities.map(city => (
                 <option key={city.value} value={city.value}>
                   {city.label}

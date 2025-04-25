@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Card, Descriptions, Input, Select, Radio, message, DatePicker, Table, Modal, Pagination, Upload, ConfigProvider, Space } from 'antd';
 import { ButtonGroup, ButtonGroupLeft, ButtonGroupRight, CommonButton } from '@/components/admin/common/Button';
 import { addMockData, Mock_Survey_Content } from '@/components/admin/mock/MOCK_Survey';
-import { UploadOutlined, DownloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { UploadOutlined, DownloadOutlined, SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import { GreenButton, GreenButtonGroup } from '@/components/admin/common/Button';
 import ko_KR from 'antd/lib/locale/ko_KR';
 import useModelStore from '@/components/admin/store/modelStore';
@@ -54,6 +54,14 @@ const SurveyDetail = () => {
     maxScore: 5,
     questions: ''
   });
+
+  // 설문 상세 카드를 관리하기 위한 배열 상태 추가
+  const [surveyDetailCards, setSurveyDetailCards] = useState([{ 
+    id: 1, 
+    questions: '',
+    startScore: 1,
+    maxScore: 5
+  }]);
 
   // 설문 내용 테이블 MOCK 데이터
   const [surveyList, setSurveyList] = useState(Mock_Survey_Content);
@@ -118,8 +126,9 @@ const SurveyDetail = () => {
     }
   };
 
-  const handleSurveyContentChange = (e) => {
-    setNewSurvey({...newSurvey, surveyContent: e.target.value});
+  // 설문 내용 변경 핸들러 (셀렉트 박스용으로 수정)
+  const handleSurveyContentChange = (value) => {
+    setNewSurvey({...newSurvey, surveyContent: value});
   };
 
   // 파일 선택 핸들러
@@ -416,61 +425,120 @@ const SurveyDetail = () => {
     });
   };
 
-  // 설문 내용 점수 설정 핸들러
-  const handleStartScoreChange = (e) => {
-    setSurveyContent({...surveyContent, startScore: parseInt(e.target.value) || 0});
+  // 특정 카드의 시작 점수 변경 핸들러
+  const handleCardStartScoreChange = (id, value) => {
+    setSurveyDetailCards(surveyDetailCards.map(card => 
+      card.id === id ? { ...card, startScore: parseInt(value) || 0 } : card
+    ));
   };
 
-  const handleMaxScoreChange = (e) => {
-    setSurveyContent({...surveyContent, maxScore: parseInt(e.target.value) || 0});
+  // 특정 카드의 최대 점수 변경 핸들러
+  const handleCardMaxScoreChange = (id, value) => {
+    setSurveyDetailCards(surveyDetailCards.map(card => 
+      card.id === id ? { ...card, maxScore: parseInt(value) || 0 } : card
+    ));
   };
 
-  // 설문 내용 문항 설정 핸들러
-  const handleQuestionsChange = (e) => {
-    setSurveyContent({...surveyContent, questions: e.target.value});
+  // 설문 내용 카드 추가 핸들러
+  const handleAddSurveyCard = () => {
+    const newCardId = Math.max(...surveyDetailCards.map(card => card.id), 0) + 1;
+    setSurveyDetailCards([...surveyDetailCards, { 
+      id: newCardId, 
+      questions: '',
+      startScore: 1,
+      maxScore: 5
+    }]);
+    message.success('새 설문 카드가 추가되었습니다.');
+  };
+
+  // 설문 내용 카드 삭제 핸들러
+  const handleDeleteSurveyCard = () => {
+    if (surveyDetailCards.length <= 1) {
+      message.warning('최소 1개의 설문 카드는 유지되어야 합니다.');
+      return;
+    }
+    
+    // 삭제할 카드는 마지막 카드
+    const cardToDelete = surveyDetailCards.length;
+    
+    Modal.confirm({
+      title: '문항 삭제 확인',
+      content: `설문내용 상세 ${cardToDelete} 문항을 삭제하시겠습니까?`,
+      okText: '삭제',
+      okType: 'danger',
+      cancelText: '취소',
+      onOk: () => {
+        // 후순위(마지막에 추가된) 카드부터 삭제
+        const updatedCards = [...surveyDetailCards];
+        updatedCards.pop();
+        setSurveyDetailCards(updatedCards);
+        message.success(`설문내용 상세 ${cardToDelete} 문항이 삭제되었습니다.`);
+      }
+    });
+  };
+
+  // 특정 카드의 문항 내용 변경 핸들러
+  const handleCardQuestionsChange = (id, value) => {
+    setSurveyDetailCards(surveyDetailCards.map(card => 
+      card.id === id ? { ...card, questions: value } : card
+    ));
   };
 
   // 테이블 행 수정 핸들러
   const handleEditSurvey = (record) => {
     setSelectedSurvey(record);
+    
+    // 기존 카드를 새 형식으로 변환
+    setSurveyDetailCards([{ 
+      id: 1, 
+      questions: '',
+      startScore: record.startScore || 1,
+      maxScore: record.maxScore || 5
+    }]);
+    
     setSurveyContent({
       ...surveyContent,
       title: record.title,
       startScore: record.startScore,
       maxScore: record.maxScore,
-      // 더미 데이터에는 문항 세부 내용이 없으므로 임의로 설정
-      questions: Array(record.questionCount).fill('')
-        .map((_, i) => `문항 ${i + 1}: 이곳에 문항 내용이 표시됩니다.`)
-        .join('\n')
     });
   };
 
-  // 설문 내용 등록 저장
+  // 설문 내용 저장 시 모든 카드의 내용을 합쳐서 저장
   const handleSurveyContentSave = () => {
     if (!selectedSurvey) {
       message.error('수정할 설문을 선택해주세요');
       return;
     }
 
-    if (surveyContent.startScore >= surveyContent.maxScore) {
-      message.error('최대점수는 시작점수보다 커야 합니다');
-      return;
+    // 각 카드의 점수 설정 검증
+    for (let i = 0; i < surveyDetailCards.length; i++) {
+      const card = surveyDetailCards[i];
+      if (card.startScore >= card.maxScore) {
+        message.error(`설문 카드 ${i + 1}의 최대점수는 시작점수보다 커야 합니다`);
+        return;
+      }
     }
 
-    if (!surveyContent.questions) {
-      message.error('문항을 입력하세요');
+    // 모든 카드의 문항 수 계산
+    const totalQuestions = surveyDetailCards.reduce((total, card) => {
+      const cardQuestionCount = card.questions ? card.questions.split('\n').filter(q => q.trim()).length : 0;
+      return total + cardQuestionCount;
+    }, 0);
+
+    if (totalQuestions === 0) {
+      message.error('최소 1개 이상의 문항을 입력하세요');
       return;
     }
 
     // 설문 업데이트
-    const questionCount = surveyContent.questions.split('\n').filter(q => q.trim()).length;
     const updatedList = surveyList.map(item => {
       if (item.id === selectedSurvey.id) {
         return { 
           ...item, 
-          startScore: surveyContent.startScore,
-          maxScore: surveyContent.maxScore,
-          questionCount
+          startScore: surveyDetailCards[0].startScore, // 첫 번째 카드의 점수 설정을 대표값으로 사용
+          maxScore: surveyDetailCards[0].maxScore,
+          questionCount: totalQuestions
         };
       }
       return item;
@@ -540,7 +608,11 @@ const SurveyDetail = () => {
     return (
       <>
         <Card style={{ marginBottom: '20px' }}>
-          <Descriptions bordered column={1}>
+          <Descriptions
+            bordered column={1}
+            labelStyle={{ width: '10%' }}
+            contentStyle={{ width: '90%' }}
+          >
             <Descriptions.Item label="센터">
               <Select
                 placeholder="센터를 선택하세요"
@@ -592,12 +664,16 @@ const SurveyDetail = () => {
               />
             </Descriptions.Item>
             <Descriptions.Item label="설문내용">
-              <TextArea
-                rows={6}
-                placeholder="설문 내용을 입력하세요"
+              <Select
+                placeholder="설문 내용을 선택하세요"
+                style={{ width: 200 }}
                 value={newSurvey.surveyContent}
                 onChange={handleSurveyContentChange}
-              />
+              >
+                <Select.Option value="NPS">NPS</Select.Option>
+                <Select.Option value="CES">CES</Select.Option>
+                <Select.Option value="NPS 02">NPS 02</Select.Option>
+              </Select>
             </Descriptions.Item>
           </Descriptions>
         </Card>
@@ -850,51 +926,77 @@ const SurveyDetail = () => {
         
         {/* 설문내용 상세 - 선택된 설문이 있을 때만 표시 */}
         {selectedSurvey && (
-          <Card 
-            title={`설문내용 상세 - ${selectedSurvey.title}`} 
-            style={{ marginBottom: '20px' }}
-            extra={<Button type="link" onClick={handleCancelEdit}>닫기</Button>}
-          >
-            <Descriptions bordered column={1}>
-              <Descriptions.Item label="점수설정">
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <div>
-                    <span>시작점수: </span>
-                    <Input 
-                      type="number" 
-                      value={surveyContent.startScore} 
-                      onChange={handleStartScoreChange}
-                      style={{ width: '80px' }} 
+          <>
+            {surveyDetailCards.map((card, index) => (
+              <Card 
+                key={card.id}
+                title={`설문내용 상세 ${index + 1}`} 
+                style={{ marginBottom: '20px' }}
+                extra={index === 0 ? <Button type="link" onClick={handleCancelEdit}>닫기</Button> : null}
+              >
+                <Descriptions bordered column={1}>
+                  <Descriptions.Item label="점수설정">
+                    <div style={{ display: 'flex', gap: '20px' }}>
+                      <div>
+                        <span>시작점수: </span>
+                        <Input 
+                          type="number" 
+                          value={card.startScore} 
+                          onChange={(e) => handleCardStartScoreChange(card.id, e.target.value)}
+                          style={{ width: '80px' }} 
+                        />
+                      </div>
+                      <div>
+                        <span>최대점수: </span>
+                        <Input 
+                          type="number" 
+                          value={card.maxScore} 
+                          onChange={(e) => handleCardMaxScoreChange(card.id, e.target.value)}
+                          style={{ width: '80px' }} 
+                        />
+                      </div>
+                    </div>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="문항설정">
+                    <TextArea
+                      rows={8}
+                      placeholder="각 문항을 줄바꿈으로 구분하여 입력하세요"
+                      value={card.questions}
+                      onChange={(e) => handleCardQuestionsChange(card.id, e.target.value)}
                     />
-                  </div>
-                  <div>
-                    <span>최대점수: </span>
-                    <Input 
-                      type="number" 
-                      value={surveyContent.maxScore} 
-                      onChange={handleMaxScoreChange}
-                      style={{ width: '80px' }} 
-                    />
-                  </div>
-                </div>
-              </Descriptions.Item>
-              <Descriptions.Item label="문항설정">
-                <TextArea
-                  rows={8}
-                  placeholder="각 문항을 줄바꿈으로 구분하여 입력하세요"
-                  value={surveyContent.questions}
-                  onChange={handleQuestionsChange}
-                />
-              </Descriptions.Item>
-            </Descriptions>
+                  </Descriptions.Item>
+                </Descriptions>
+              </Card>
+            ))}
             
-            <div style={{ marginTop: '16px', textAlign: 'center' }}>
-              <Button type="primary" onClick={handleSurveyContentSave} style={{ marginRight: '8px' }}>
-                설문 내용 저장
-              </Button>
-              <Button onClick={handleCancelEdit}>취소</Button>
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between' }}>
+              <div>
+                <Button 
+                  icon={<PlusOutlined />} 
+                  onClick={handleAddSurveyCard}
+                  style={{ marginRight: '8px' }}
+                >
+                  문항 추가
+                </Button>
+                <Button 
+                  danger 
+                  onClick={handleDeleteSurveyCard}
+                  disabled={surveyDetailCards.length <= 1}
+                >
+                  문항 삭제
+                </Button>
+              </div>
+              <div style={{ textAlign: 'center', flex: 1 }}>
+                <Space>
+                  <Button type="primary" onClick={handleSurveyContentSave} style={{ marginRight: '8px' }}>
+                    설문 내용 저장
+                  </Button>
+                  <Button onClick={handleCancelEdit}>취소</Button>
+                </Space>
+              </div>
+              <div style={{ width: '180px' }}></div> {/* 오른쪽 여백 확보 */}
             </div>
-          </Card>
+          </>
         )}
         
         {/* 버튼 그룹은 선택된 설문이 없을 때만 표시 */}

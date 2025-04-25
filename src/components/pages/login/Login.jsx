@@ -7,10 +7,10 @@ import { sanitizeInput } from '@/utils/inputValidation';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loginAsAdmin } = useAuthStore();
+  const { login } = useAuthStore();
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    acnt_id: '',
+    acnt_pw: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,8 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const result = await login(formData.username, formData.password);
+      const result = await login(formData.acnt_id, formData.acnt_pw);
+      console.log('로그인 결과:', result);
       if (result.success) {
         navigate('/');
       } else {
@@ -42,11 +43,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAdminLogin = () => {
-    loginAsAdmin();
-    navigate('/mng');
   };
 
   const handleEnterKey = (e) => {
@@ -72,14 +68,14 @@ const Login = () => {
                   
                   <ul className="ipbox">
                     <li>
-                      <label htmlFor="username">
+                      <label htmlFor="acnt_id">
                         <input
                           type="text"
-                          name="username"
-                          id="username"
+                          name="acnt_id"
+                          id="acnt_id"
                           className="ip01"
                           placeholder="아이디 입력"
-                          value={formData.username}
+                          value={formData.acnt_id}
                           onChange={handleChange}
                           title="ID"
                           disabled={loading}
@@ -88,14 +84,14 @@ const Login = () => {
                       </label>
                     </li>
                     <li>
-                      <label htmlFor="password">
+                      <label htmlFor="acnt_pw">
                         <input
                           type="password"
-                          name="password"
-                          id="password"
+                          name="acnt_pw"
+                          id="acnt_pw"
                           className="ip01"
                           placeholder="비밀번호 입력"
-                          value={formData.password}
+                          value={formData.acnt_pw}
                           onChange={handleChange}
                           onKeyUp={handleEnterKey}
                           title="Password"
@@ -109,13 +105,6 @@ const Login = () => {
 
                   <button type="submit" className="hgbtn blue02 btn-login" disabled={loading}>
                     {loading ? <Loading text="로그인 중" showText={true} /> : '로그인'}
-                  </button>
-
-                  <button 
-                    className="admin_login_btn"
-                    onClick={handleAdminLogin}
-                  >
-                    관리자 로그인 (테스트)
                   </button>
 
                   <ul className="mem-menu">

@@ -19,38 +19,33 @@ const useAuthStore = create(
       promptTimer: null,
 
       // 로그인
-      login: async (username, password) => {
+      login: (username, password) => {
         try {
           // 실제 API 호출
-          const response = await apiService.post('/auth/login', {
-            username,
-            password
+          const response = apiService.post('/loginProc', {
+            acnt_id: username,
+            acnt_pw: password
           });
 
-          if (response.data.success) {
-            const { token, refreshToken, userInfo } = response.data;
+          // 응답 구조가 예상과 다를 수 있으므로 유효성 검사
+          if (response) {
+            // 토큰이 응답에 포함되어 있는지 확인
+            const token = response.token || 'default_token';
             
-            // 액세스 토큰을 httpOnly 쿠키에 저장
-            setCookie('accessToken', token, {
-              httpOnly: true,
-              secure: true,
-              sameSite: 'strict',
-              maxAge: AUTO_LOGOUT_TIME / 1000
-            });
-
-            // 리프레시 토큰을 httpOnly 쿠키에 저장
-            setCookie('refreshToken', refreshToken, {
-              httpOnly: true,
-              secure: true,
-              sameSite: 'strict',
-              maxAge: 7 * 24 * 60 * 60 // 7일
-            });
-
+            // 로컬 스토리지에 토큰과 사용자 정보 저장
+            localStorage.setItem('token', token);
+            localStorage.setItem('userId', username);
+            
+            // Axios 인스턴스의 헤더에 토큰 설정
+            apiService.axiosInstance.defaults.headers.Authorization = `Bearer ${token}`;
+            
             set({
               isLoggedIn: true,
               userInfo: {
-                ...userInfo,
-                type: userInfo.type || 'user'
+                id: username,
+                username: username,
+                name: username,
+                type: 'admin'
               },
               lastActivity: Date.now(),
               showLogoutPrompt: false
@@ -59,7 +54,7 @@ const useAuthStore = create(
             get().startAutoLogout();
             return { success: true };
           }
-          return { success: false, message: response.data.message };
+          return { success: false, message: '로그인에 실패했습니다.' };
         } catch (error) {
           console.error('로그인 중 오류:', error);
           return { success: false, message: '로그인 중 오류가 발생했습니다.' };

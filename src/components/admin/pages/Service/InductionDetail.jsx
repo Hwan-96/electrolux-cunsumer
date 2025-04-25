@@ -35,7 +35,10 @@ const InductionDetail = () => {
   return (
     <>
       <Card style={{ marginBottom: '20px' }}>
-        <Descriptions bordered column={2}>
+        <Descriptions
+          bordered column={2}
+          labelStyle={{ width: '10%' }}
+        >
           <Descriptions.Item label="처리상태" span={2}>
             <Radio.Group value={status} onChange={handleStatusChange}>
               <Radio value="completed">처리완료</Radio>

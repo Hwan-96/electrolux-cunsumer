@@ -1,25 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
+import Loading from '@/components/common/Loading';
+import useDownloadStore from '@/stores/downLoadStore';
 
 const PrdGuideDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // 상세 정보 조회를 위한 제품 데이터 (실제로는 API로 가져올 데이터)
-  const product = {
-    id: Number(id) || 1,
-    title: 'ESM6307KG 사용설명서',
-    date: '2024-04-15',
-    content: '일렉트로룩스 양문형 냉장고 ESM6307KG 사용설명서입니다. 제품 사용 전 반드시 사용설명서를 읽어보시고 올바르게 사용해 주시기 바랍니다.',
-    files: [
-      {
-        fileName: 'ESM6307KG_사용설명서.pdf',
-        fileSize: '3.5MB'
+  // 다운로드 스토어 사용
+  const { currentPrdGuide: product, getPrdGuideDetail } = useDownloadStore();
+  
+  // 컴포넌트 마운트 시 데이터 로드
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await getPrdGuideDetail(id);
+      } catch (err) {
+        console.error('제품 사용설명서 상세 정보 조회 오류:', err);
+        setError('제품 사용설명서를 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
       }
-    ]
-  };
+    };
+    
+    fetchData();
+  }, [id, getPrdGuideDetail]);
   
   // 파일 다운로드 처리
   const handleDownload = (fileName) => {
@@ -55,45 +66,65 @@ const PrdGuideDetail = () => {
             </ul>
           </div>
 
-          {/* HTML 템플릿 구조에 맞춘 상세 내용 */}
-          <div className="bd-view1">
-            {/* 제목 영역 */}
-            <div className="tit-area">
-              <h4 className="tit">
-                {product.title}
-              </h4>
-              <div className="bd-info-wrap">
-                <dl className="tit-info">
-                  <dt className="date">작성일</dt>
-                  <dd className="date">
-                    {product.date}
-                  </dd>
-                </dl>
+          {loading ? (
+            <div className="loading-container" style={{textAlign: 'center', padding: '50px 0'}}>
+              <Loading text="데이터를 불러오는 중입니다" showText={true} />
+            </div>
+          ) : error ? (
+            <div className="error-container" style={{textAlign: 'center', padding: '50px 0', color: '#CC0000'}}>
+              {error}
+            </div>
+          ) : product ? (
+            <>
+              {/* HTML 템플릿 구조에 맞춘 상세 내용 */}
+              <div className="bd-view1">
+                {/* 제목 영역 */}
+                <div className="tit-area">
+                  <h4 className="tit">
+                    {product.title}
+                  </h4>
+                  <div className="bd-info-wrap">
+                    <dl className="tit-info">
+                      <dt className="date">작성일</dt>
+                      <dd className="date">
+                        {product.createdAt}
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+
+                {/* 내용 영역 */}
+                <div className="output-cts">
+                  <p><b>○ 제품 정보 : {product.brand} {' > '} {product.category} {' > '} {product.productName} {' > '} {product.modelName}</b></p>
+                  <br />
+                  {product.content}
+                </div>
+
+                {/* 첨부파일 영역 */}
+                {product.files && product.files.length > 0 && (
+                  <dl className="dl-tr down">
+                    <dt>첨부파일</dt>
+                    {product.files.map((file, index) => (
+                      <dd key={index}>
+                        <a href="#" onClick={(e) => { e.preventDefault(); handleDownload(file.fileName); }}>
+                          {file.fileName} ({file.fileSize})
+                        </a>
+                      </dd>
+                    ))}
+                  </dl>
+                )}
               </div>
+
+              {/* 목록 버튼 */}
+              <div className="btn-area1 ta-btm">
+                <a href="#" onClick={(e) => { e.preventDefault(); handleBackToList(); }} className="hgbtn blue01">목록</a>
+              </div>
+            </>
+          ) : (
+            <div className="no-data-container" style={{textAlign: 'center', padding: '50px 0'}}>
+              제품 정보가 없습니다.
             </div>
-
-            {/* 내용 영역 */}
-            <div className="output-cts">
-              {product.content}
-            </div>
-
-            {/* 첨부파일 영역 */}
-            <dl className="dl-tr down">
-              <dt>첨부파일</dt>
-              {product.files.map((file, index) => (
-                <dd key={index}>
-                  <a href="#" onClick={(e) => { e.preventDefault(); handleDownload(file.fileName); }}>
-                    {file.fileName} ({file.fileSize})
-                  </a>
-                </dd>
-              ))}
-            </dl>
-          </div>
-
-          {/* 목록 버튼 */}
-          <div className="btn-area1 ta-btm">
-            <a href="#" onClick={(e) => { e.preventDefault(); handleBackToList(); }} className="hgbtn blue01">목록</a>
-          </div>
+          )}
         </article>
       </div>
     </div>

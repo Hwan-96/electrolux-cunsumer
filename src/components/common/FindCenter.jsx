@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { regionData, cityData } from '@/utils/regionData';
+import { regionData, getCitiesByRegion } from '@/utils/regionData';
 
 const FindCenter = () => {
   const navigate = useNavigate();
@@ -19,7 +19,14 @@ const FindCenter = () => {
     const region = e.target.value;
     setSelectedRegion(region);
     setSelectedCity('시군구');
-    setCities(region ? cityData[region] || [{ value: '시군구', label: '시군구' }] : [{ value: '시군구', label: '시군구' }]);
+    
+    // 새로운 시군구 데이터 가져오기
+    if (region && region !== '광역시/도') {
+      const citiesForRegion = getCitiesByRegion(region);
+      setCities([{ value: '시군구', label: '시군구' }, ...citiesForRegion]);
+    } else {
+      setCities([{ value: '시군구', label: '시군구' }]);
+    }
   };
 
   const handleCityChange = (e) => {
@@ -29,7 +36,7 @@ const FindCenter = () => {
   const handleSearch = () => {
     if (selectedRegion !== '광역시/도' && selectedCity !== '시군구') {
       // 서비스 센터 검색 결과 페이지로 이동
-      navigate(`/service/center_search?region=${selectedRegion}&city=${selectedCity}`);
+      navigate(`/center-search?region=${selectedRegion}&city=${selectedCity}`);
     }
   };
 

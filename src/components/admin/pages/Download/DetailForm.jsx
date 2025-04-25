@@ -4,8 +4,7 @@ import { message, Modal, Upload } from 'antd';
 import { Button, Card, Descriptions, Input, Select, Form } from 'antd';
 import { ButtonGroup, ButtonGroupLeft, ButtonGroupRight, CommonButton } from '@/components/admin/common/Button';
 import { UploadOutlined } from '@ant-design/icons';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import QuillEditor from '@/components/admin/common/QuillEditor';
 
 // 브랜드 옵션
 const brandOptions = [
@@ -85,7 +84,6 @@ const DetailForm = ({
   updateData,
   deleteData,
   getDataById,
-  useRichEditor = false,
   filePathField = 'filePath'
 }) => {
   const { id } = useParams();
@@ -292,7 +290,11 @@ const DetailForm = ({
           layout="vertical"
           initialValues={isNewMode ? initialNewState : null}
         >
-          <Descriptions bordered column={1}>
+          <Descriptions
+            bordered column={1}
+            labelStyle={{ width: '10%' }}
+            contentStyle={{ width: '90%' }}
+          >
             <Descriptions.Item label="카테고리">
               <Form.Item
                 name="modelCtgr1"
@@ -365,14 +367,10 @@ const DetailForm = ({
                 rules={[{ required: true, message: '내용을 입력하세요' }]}
                 style={{ marginBottom: 0 }}
               >
-                {useRichEditor ? (
-                  <ReactQuill 
-                    theme="snow"
-                    style={{ height: 300, marginBottom: 50 }}
-                  />
-                ) : (
-                  <Input.TextArea rows={6} placeholder="내용을 입력하세요" />
-                )}
+                <QuillEditor 
+                  value={form.getFieldValue('content')}
+                  placeholder="내용을 입력하세요"
+                />
               </Form.Item>
             </Descriptions.Item>
             

@@ -5,7 +5,7 @@ import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
 import SearchForm from '@/components/common/SearchForm';
 import fileIco from '@/images/ico-file.png';
-import useApi from '@/utils/useApi';
+import useNoticeStore from '@/stores/noticeStore';
 
 const NoticeList = () => {
   const navigate = useNavigate();
@@ -18,23 +18,17 @@ const NoticeList = () => {
   const [searchKey, setSearchKey] = useState('subject|contents');
   const [searchValue, setSearchValue] = useState('');
   
-  // API 요청을 위한 useApi 훅 사용
+  // 공지사항 스토어 사용
   const {
-    data: apiResponse,
+    notices,
+    meta,
     loading,
     error,
-    updateParams
-  } = useApi('/notices', {
-    page: currentPage,
-    limit: itemsPerPage,
-    searchType: searchKey,
-    searchKeyword: searchValue
-  });
+    getNoticeList
+  } = useNoticeStore();
 
-  // API로부터 데이터 추출
-  const notices = apiResponse?.data || [];
-  const totalItems = apiResponse?.meta?.total || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // 총 페이지 수 계산
+  const totalPages = meta?.totalPages || 0;
   
   // 검색 옵션
   const searchOptions = [
@@ -43,18 +37,42 @@ const NoticeList = () => {
     { value: 'contents', label: '내용' }
   ];
   
-  // 페이지 변경 시 데이터 재요청
+  // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    updateParams({ page: currentPage });
-  }, [currentPage, updateParams]);
+    const fetchInitialData = async () => {
+      await getNoticeList({
+        page: 1,
+        limit: itemsPerPage
+      });
+    };
+    
+    fetchInitialData();
+  }, [getNoticeList, itemsPerPage]);
+  
+  // 페이지 변경 시 데이터 로드
+  useEffect(() => {
+    // 첫 번째 useEffect에서 이미 처리했으므로 페이지가 1보다 클 때만 호출
+    if (currentPage > 1) {
+      const fetchData = async () => {
+        await getNoticeList({
+          page: currentPage,
+          limit: itemsPerPage,
+          searchType: searchKey,
+          searchKeyword: searchValue
+        });
+      };
+      
+      fetchData();
+    }
+  }, [currentPage, getNoticeList, itemsPerPage, searchKey, searchValue]);
   
   // 검색 처리
   const handleSearch = () => {
-    // 검색 필터링 로직
-    updateParams({
+    getNoticeList({
+      page: 1,
+      limit: itemsPerPage,
       searchType: searchKey,
-      searchKeyword: searchValue,
-      page: 1
+      searchKeyword: searchValue
     });
     setCurrentPage(1); // 검색 시 첫 페이지로 이동
   };
@@ -64,10 +82,13 @@ const NoticeList = () => {
     setSearchKey('subject|contents');
     setSearchValue('');
     setCurrentPage(1);
-    updateParams({
+    
+    // 초기화 후 검색 실행
+    getNoticeList({
+      page: 1,
+      limit: itemsPerPage,
       searchType: 'subject|contents',
-      searchKeyword: '',
-      page: 1
+      searchKeyword: ''
     });
   };
   
@@ -79,7 +100,7 @@ const NoticeList = () => {
   // 게시물 번호 계산 (역순)
   const calculateItemNumber = (index) => {
     // 전체 아이템 개수 - (현재 페이지 - 1) * 페이지당 아이템 수 - 현재 페이지 내 인덱스
-    return totalItems - ((currentPage - 1) * itemsPerPage + index);
+    return meta.total - ((currentPage - 1) * itemsPerPage + index);
   };
 
   // 공지사항 상세 페이지로 이동
@@ -150,7 +171,7 @@ const NoticeList = () => {
                         <img src={fileIco} alt="첨부파일" />
                       )}
                     </td>
-                    <td>{notice.date}</td>
+                    <td>{notice.createdAt}</td>
                     <td>{notice.views.toLocaleString()}</td>
                   </tr>
                 ))

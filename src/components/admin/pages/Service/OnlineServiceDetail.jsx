@@ -44,7 +44,11 @@ const OnlineServiceDetail = () => {
   return (
     <>
       <Card style={{ marginBottom: '20px' }}>
-        <Descriptions bordered column={1}>
+        <Descriptions
+          bordered column={1}
+          labelStyle={{ width: '10%' }}
+          contentStyle={{ width: '90%' }}
+        >
           <Descriptions.Item label="처리상태">
             <Radio.Group value={status} onChange={handleStatusChange}>
               <Radio value="completed">처리완료</Radio>

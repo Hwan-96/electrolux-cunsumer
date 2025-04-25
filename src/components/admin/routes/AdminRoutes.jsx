@@ -40,6 +40,12 @@ import PrdGuideDetail from '@/components/admin/pages/Download/PrdGuideDetail';
 import CleanUpDetail from '@/components/admin/pages/Download/CleanUpDetail';
 import MemberDetail from '@/components/admin/pages/Member/MemberDetail';
 import RoleDetail from '@/components/admin/pages/Member/RoleDetail';
+import BannerDetail from '@/components/admin/pages/Customize/BannerDetail';
+import VideoDetail from '@/components/admin/pages/Customize/VideoDetail';
+import TermsDetail from '@/components/admin/pages/Customize/TermsDetail';
+import FamilySiteDetail from '@/components/admin/pages/Customize/FamilySiteDetail';
+import EventDetail from '@/components/admin/pages/Event/EventListDetail';
+import EventWinDetail from '@/components/admin/pages/Event/EventWinDetail';
 
 const AdminRoutesContainer = styled.div`
   width: calc(100% - 230px);
@@ -96,13 +102,19 @@ const AdminRoutes = () => {
 
         {/* 커스텀 메뉴 */}
         <Route path="/cstmz/bnr" element={<Banner />} />
+        <Route path="/cstmz/bnr/:id" element={<BannerDetail />} />
         <Route path="/cstmz/video" element={<Video />} />
+        <Route path="/cstmz/video/:id" element={<VideoDetail />} />
         <Route path="/cstmz/terms" element={<Terms />} />
+        <Route path="/cstmz/terms/:id" element={<TermsDetail />} />
         <Route path="/cstmz/family" element={<Family />} />
+        <Route path="/cstmz/family/:id" element={<FamilySiteDetail />} />
 
         {/* 이벤트 메뉴 */}
         <Route path="/evnt/list" element={<EventList />} />
+        <Route path="/evnt/list/:id" element={<EventDetail />} />
         <Route path="/evnt/winner" element={<EventWin />} />
+        <Route path="/evnt/winner/:id" element={<EventWinDetail />} />
       </Routes>
     </AdminRoutesContainer>
   );

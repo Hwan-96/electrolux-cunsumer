@@ -4,76 +4,68 @@ import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
 import SearchForm from '@/components/common/SearchForm';
 import { Link, useNavigate } from 'react-router-dom';
-import useApi from '@/utils/useApi';
-import apiService from '@/utils/api';
+import useQnaStore from '@/stores/qnaStore';
+import useAuthStore from '@/stores/authStore';
 
 const Qna = () => {
   const navigate = useNavigate();
-  const [searchType, setSearchType] = useState('uname'); // uname: 고객명, uphone: 연락처
+  const [searchType, setSearchType] = useState('ctgr3'); // ctgr3: 문의내용, answer: 답변
   const [searchKeyword, setSearchKeyword] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // 페이지당 표시할 항목 수
   
-  // 로그인 상태 확인
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userType, setUserType] = useState(null);
-  const [userId, setUserId] = useState(null);
+  // QNA 스토어에서 필요한 상태와 메서드 가져오기
+  const { qnaList, loading, error, meta, getQnaList } = useQnaStore();
   
-  // 컴포넌트 마운트 시 로그인 상태 확인
+  // 로그인 스토어에서 로그인 상태 가져오기
+  const { isLoggedIn, userInfo } = useAuthStore();
+  
+  // 컴포넌트 마운트 시 QNA 목록 가져오기
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUserType = localStorage.getItem('userType');
-    const storedUserId = apiService.getCurrentUserId();
+    const fetchQnas = async () => {
+      await getQnaList({
+        page: currentPage,
+        limit: itemsPerPage,
+        searchType,
+        searchValue: searchKeyword
+      });
+    };
     
-    setIsLoggedIn(!!token);
-    setUserType(storedUserType);
-    setUserId(storedUserId);
-  }, []);
-  
-  // API 요청을 위한 useApi 훅 사용
-  const {
-    data: qnaResponse,
-    loading,
-    error,
-    updateParams,
-  } = useApi('/qna', { 
-    page: currentPage, 
-    limit: itemsPerPage,
-    searchType,
-    searchKeyword
-  });
+    fetchQnas();
+  }, [getQnaList, currentPage, itemsPerPage]);
 
   // 검색 옵션
   const searchOptions = [
-    { value: 'uname', label: '고객명' },
-    { value: 'uphone', label: '연락처' }
+    { value: 'ctgr3', label: '문의내용' },
+    { value: 'answer', label: '답변' }
   ];
   
-  // 데이터 및 페이지 정보 추출
-  const qnaData = qnaResponse?.data || [];
-  const totalItems = qnaResponse?.meta?.total || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // 총 페이지 수 계산
+  const totalPages = meta?.totalPages || 1;
 
-  // 페이지 변경 시 데이터 재요청
-  useEffect(() => {
-    updateParams({ page: currentPage });
-  }, [currentPage, updateParams]);
-  
+  // 검색 실행
   const handleSearch = () => {
-    // 검색 기능 구현
-    console.log('검색:', searchType, searchKeyword);
-    updateParams({ 
-      searchType, 
-      searchKeyword,
-      page: 1 // 검색 시 첫 페이지로 리셋
+    getQnaList({
+      page: 1, // 검색 시 첫 페이지로 이동
+      limit: itemsPerPage,
+      searchType,
+      searchValue: searchKeyword
     });
     setCurrentPage(1);
   };
   
+  // 페이지 변경 처리
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    getQnaList({
+      page,
+      limit: itemsPerPage,
+      searchType,
+      searchValue: searchKeyword
+    });
   };
   
+  // QNA 상세 페이지로 이동
   const handleQuestionClick = (id, authorId) => {
     if (!isLoggedIn) {
       alert('로그인 후 이용 가능합니다.');
@@ -82,13 +74,13 @@ const Qna = () => {
     }
     
     // 관리자는 모든 글에 접근 가능
-    if (userType === 'admin') {
+    if (userInfo?.type === 'admin') {
       navigate(`/qna/${id}`);
       return;
     }
     
     // 일반 사용자는 자신의 글만 볼 수 있음
-    if (authorId !== userId) {
+    if (authorId !== userInfo?.id) {
       alert('본인이 작성한 글만 확인할 수 있습니다.');
       return;
     }
@@ -97,6 +89,7 @@ const Qna = () => {
     navigate(`/qna/${id}`);
   };
 
+  // 새 QNA 등록 페이지로 이동
   const handleRegisterClick = () => {
     if (!isLoggedIn) {
       alert('로그인 후 등록이 가능합니다.');
@@ -109,13 +102,14 @@ const Qna = () => {
   
   // 검색 초기화
   const handleReset = () => {
-    setSearchType('uname');
+    setSearchType('ctgr3');
     setSearchKeyword('');
     setCurrentPage(1);
-    updateParams({ 
-      searchType: 'uname', 
-      searchKeyword: '',
-      page: 1
+    getQnaList({
+      page: 1,
+      limit: itemsPerPage,
+      searchType: 'ctgr3',
+      searchValue: ''
     });
   };
 
@@ -170,8 +164,8 @@ const Qna = () => {
                 <tr>
                   <td colSpan="5" className="tac">데이터를 불러오는데 실패했습니다. {error}</td>
                 </tr>
-              ) : qnaData.length > 0 ? (
-                qnaData.map((qna) => (
+              ) : qnaList.length > 0 ? (
+                qnaList.map((qna) => (
                   <tr key={qna.id}>
                     <td>{qna.id}</td>
                     <td className="tit">

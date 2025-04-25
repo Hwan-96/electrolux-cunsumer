@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Card, Descriptions, Radio, Input, message } from 'antd';
+import { Button, Card, Descriptions, Radio, message } from 'antd';
 import { ButtonGroup, ButtonGroupLeft, ButtonGroupRight, CommonButton } from '@/components/admin/common/Button';
 import { getMockData, updateMockData, deleteMockData, addMockData } from '@/components/admin/mock/MOCK_FAQ';
 import useDetail from '@/hooks/useDetail';
+import QuillEditor from '@/components/admin/common/QuillEditor';
 
 const FaqDetail = () => {
   const { id } = useParams();
@@ -47,12 +48,12 @@ const FaqDetail = () => {
     setNewItem({...newItem, product: e.target.value});
   };
 
-  const handleNewItemQuestionChange = (e) => {
-    setNewItem({...newItem, question: e.target.value, q: e.target.value});
+  const handleNewItemQuestionChange = (content) => {
+    setNewItem({...newItem, question: content, q: content});
   };
 
-  const handleNewItemAnswerChange = (e) => {
-    setNewItem({...newItem, answer: e.target.value, a: e.target.value});
+  const handleNewItemAnswerChange = (content) => {
+    setNewItem({...newItem, answer: content, a: content});
   };
 
   const handleNewItemSave = () => {
@@ -101,7 +102,11 @@ const FaqDetail = () => {
     return (
       <>
         <Card style={{ marginBottom: '20px' }}>
-          <Descriptions bordered column={1}>
+          <Descriptions
+            bordered column={1}
+            labelStyle={{ width: '10%' }}
+            contentStyle={{ width: '90%' }}
+          >
             <Descriptions.Item label="제품군">
               <Radio.Group value={newItem.product} onChange={handleNewItemStatusChange}>
                 <Radio value="all">통합</Radio>
@@ -114,10 +119,22 @@ const FaqDetail = () => {
               </Radio.Group>
             </Descriptions.Item>
             <Descriptions.Item label="질문">
-              <Input value={newItem.question} onChange={handleNewItemQuestionChange} placeholder="질문을 입력하세요" />
+              <QuillEditor
+                value={newItem.question}
+                onChange={handleNewItemQuestionChange}
+                placeholder="질문을 입력하세요"
+                height="200px" 
+                editorHeight="150px"
+              />
             </Descriptions.Item>
             <Descriptions.Item label="답변">
-              <Input.TextArea value={newItem.answer} onChange={handleNewItemAnswerChange} placeholder="답변을 입력하세요" />
+              <QuillEditor
+                value={newItem.answer}
+                onChange={handleNewItemAnswerChange}
+                placeholder="답변을 입력하세요"
+                height="300px" 
+                editorHeight="250px"
+              />
             </Descriptions.Item>
           </Descriptions>
         </Card>
@@ -136,7 +153,11 @@ const FaqDetail = () => {
     return (
       <>
         <Card style={{ marginBottom: '20px' }}>
-        <Descriptions bordered column={1}>
+          <Descriptions
+            bordered column={1}
+            labelStyle={{ width: '10%' }}
+            contentStyle={{ width: '90%' }}
+          >
           <Descriptions.Item label="제품군">
             <Radio.Group value={product} onChange={handleProductChange}>
               <Radio value="all">통합</Radio>
@@ -149,19 +170,21 @@ const FaqDetail = () => {
             </Radio.Group>
           </Descriptions.Item>
           <Descriptions.Item label="질문">
-            <Input.TextArea 
-              rows={4} 
+            <QuillEditor
               value={question}
               onChange={handleQuestionChange}
               placeholder="질문을 입력하세요"
+              height="200px"
+              editorHeight="150px"
             />
           </Descriptions.Item>
           <Descriptions.Item label="답변">
-            <Input.TextArea 
-              rows={10} 
+            <QuillEditor
               value={answer}
               onChange={handleAnswerChange}
               placeholder="답변을 입력하세요"
+              height="300px"
+              editorHeight="250px"
             />
           </Descriptions.Item>
         </Descriptions>

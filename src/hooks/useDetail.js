@@ -72,16 +72,16 @@ const useDetail = ({ id, mockData, updateMockData, deleteMockData, listPath }) =
     setStatus(e.target.value);
   };
 
-  const handleAnswerChange = (e) => {
-    setAnswer(e.target.value);
+  const handleAnswerChange = (content) => {
+    setAnswer(content);
   };
 
   const handleProductChange = (e) => {
     setProduct(e.target.value);
   };
 
-  const handleQuestionChange = (e) => {
-    setQuestion(e.target.value);
+  const handleQuestionChange = (content) => {
+    setQuestion(content);
   };
 
   const handleSave = async () => {

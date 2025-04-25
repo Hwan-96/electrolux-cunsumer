@@ -1,5 +1,6 @@
 import { regionData, cityData } from './regionData';
 import { centerAdmin } from './data';
+import { getMockData, getMockDataByRegion, getMockDataByCity, getMockDataByRegionAndCity } from '@/components/admin/mock/MOCK_CenterList';
 
 // 서비스 센터 더미 데이터 생성 (파일에서 센터 데이터 가져오기)
 const mockServiceCenters = [...centerAdmin];
@@ -233,46 +234,53 @@ export const mockApiService = {
     return createResponse(cityData[region] || []);
   },
   
-  // 서비스 센터 조회
+  // 서비스 센터 조회 - 관리자 페이지에서 등록한 센터 데이터만 반환하도록 수정
   getServiceCenters: async (params = {}) => {
-    let filteredCenters = [...mockServiceCenters];
+    // 관리자 페이지에서 등록한 MOCK_CenterList 데이터 가져오기
+    let adminCenters = getMockData();
+    let filteredCenters = [];
     
-    // 지역 필터링
-    if (params.region) {
-      filteredCenters = filteredCenters.filter(center => 
-        center.address.includes(params.region)
-      );
+    // 지역 및 시군구에 따른 필터링
+    if (params.region && params.city) {
+      filteredCenters = getMockDataByRegionAndCity(params.region, params.city);
+    } else if (params.region) {
+      filteredCenters = getMockDataByRegion(params.region);
+    } else if (params.city) {
+      filteredCenters = getMockDataByCity(params.city);
+    } else {
+      filteredCenters = adminCenters;
     }
     
-    // 시군구 필터링
-    if (params.city) {
-      filteredCenters = filteredCenters.filter(center => 
-        center.address.includes(params.city)
-      );
-    }
+    // 프론트엔드 표시 형식에 맞게 데이터 변환
+    const formattedCenters = filteredCenters.map(center => ({
+      id: center.id,
+      name: center.centerNm,
+      address: center.centerAddr,
+      phone: center.centerTel,
+      url: center.url
+    }));
     
-    // 키워드 검색
-    if (params.keyword) {
-      const keyword = params.keyword.toLowerCase();
-      filteredCenters = filteredCenters.filter(center => 
-        center.name.toLowerCase().includes(keyword) ||
-        center.address.toLowerCase().includes(keyword) ||
-        (center.desc && center.desc.toLowerCase().includes(keyword))
-      );
-    }
-    
-    return createResponse(filteredCenters);
+    return createResponse(formattedCenters);
   },
   
-  // 서비스 센터 상세 조회
+  // 서비스 센터 상세 조회 - 관리자 페이지에서 등록한 데이터 사용
   getServiceCenterById: async (id) => {
-    const center = mockServiceCenters.find(center => center.id === parseInt(id));
+    const adminCenter = getMockData().find(center => center.id === parseInt(id));
     
-    if (!center) {
+    if (!adminCenter) {
       return createResponse({ message: '서비스 센터를 찾을 수 없습니다.' }, {}, 404);
     }
     
-    return createResponse(center);
+    // 프론트엔드 표시 형식으로 변환
+    const formattedCenter = {
+      id: adminCenter.id,
+      name: adminCenter.centerNm,
+      address: adminCenter.centerAddr,
+      phone: adminCenter.centerTel,
+      url: adminCenter.url
+    };
+    
+    return createResponse(formattedCenter);
   },
 
   // QnA 목록 조회 - 페이지네이션, 검색 기능 포함

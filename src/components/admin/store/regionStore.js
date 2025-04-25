@@ -1,29 +1,7 @@
 import { create } from 'zustand';
-import sidosigunguData from '@/utils/sidosigungu_202504.json';
-
-// JSON 데이터 형식 변환
-const transformRegionData = () => {
-  const transformedData = {};
-  
-  sidosigunguData.forEach(item => {
-    const sido = item.sido;
-    
-    // sigungu 배열을 { value, label } 형태로 변환
-    const sigunguOptions = item.sigungu.map(sigungu => ({
-      value: sigungu,
-      label: sigungu
-    }));
-    
-    transformedData[sido] = sigunguOptions;
-  });
-  
-  return transformedData;
-};
+import { getAdminRegionOptions, getAdminCityOptions } from '@/utils/regionData';
 
 const useRegionStore = create((set) => ({
-  // sidosigungu_202504.json 데이터 활용
-  regionData: transformRegionData(),
-
   // 현재 선택된 지역
   selectedRegion: 'all',
   setSelectedRegion: (region) => set({ selectedRegion: region }),
@@ -32,20 +10,14 @@ const useRegionStore = create((set) => ({
   selectedCity: 'all',
   setSelectedCity: (city) => set({ selectedCity: city }),
 
-  // 시군구 옵션 가져오기
+  // 시군구 옵션 가져오기 - regionData 유틸리티 사용
   getCityOptions: (region) => {
-    const { regionData } = useRegionStore.getState();
-    return region === 'all' ? [] : regionData[region] || [];
+    return getAdminCityOptions(region);
   },
 
-  // 지역 옵션 가져오기
+  // 지역 옵션 가져오기 - regionData 유틸리티 사용
   getRegionOptions: () => {
-    const { regionData } = useRegionStore.getState();
-    return [
-      { value: 'all', label: '전체' },
-      ...Object.keys(regionData)
-        .map(key => ({ value: key, label: key }))
-    ];
+    return getAdminRegionOptions();
   },
 
   // 시군구 셀렉트 박스 활성화 여부 확인

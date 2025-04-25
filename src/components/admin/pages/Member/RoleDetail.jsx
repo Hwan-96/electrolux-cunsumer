@@ -160,7 +160,10 @@ const RoleDetail = () => {
       <Form form={form} layout="vertical">
         <Card style={{ marginBottom: '20px' }}>
           <CardTitle>기본정보</CardTitle>
-          <Descriptions bordered column={2}>
+          <Descriptions
+            bordered column={2}
+            labelStyle={{ width: '10%' }}
+          >
             <Descriptions.Item label="아이디">
               <Form.Item
                 name="userId"
