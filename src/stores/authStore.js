@@ -1,14 +1,27 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useIdleTimer } from 'react-idle-timer';
-import apiService from '@/utils/api';
-import { setCookie, deleteCookie, getCookie } from '@/utils/cookie';
+import axios from 'axios';
+import { deleteCookie } from '@/utils/cookie';
 
 // 자동 로그아웃 설정
 const AUTO_LOGOUT_TIME = 30 * 60 * 1000; // 30분
 const AUTO_LOGOUT_PROMPT_TIME = 5 * 60 * 1000; // 5분
 
-const useAuthStore = create(
+// API 기본 URL
+const API_BASE_URL = '';  // 개발용 프록시를 사용하므로 빈 문자열로 설정
+
+// axios 인스턴스 생성
+export const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8'
+  },
+  withCredentials: true
+});
+
+export const useAuthStore = create(
   persist(
     (set, get) => ({
       isLoggedIn: false,
@@ -19,70 +32,91 @@ const useAuthStore = create(
       promptTimer: null,
 
       // 로그인
-      login: (username, password) => {
+      login: async (acnt_id, acnt_pw) => {
         try {
-          // 실제 API 호출
-          const response = apiService.post('/loginProc', {
-            acnt_id: username,
-            acnt_pw: password
+          console.log('로그인 시도:', { acnt_id, acnt_pw });
+          
+          // 직접 axios를 사용하여 로그인 API 호출
+          const response = await axiosInstance.post('/api/loginProc', {
+            acnt_id,
+            acnt_pw,
           });
 
-          // 응답 구조가 예상과 다를 수 있으므로 유효성 검사
-          if (response) {
-            // 토큰이 응답에 포함되어 있는지 확인
-            const token = response.token || 'default_token';
-            
-            // 로컬 스토리지에 토큰과 사용자 정보 저장
-            localStorage.setItem('token', token);
-            localStorage.setItem('userId', username);
-            
-            // Axios 인스턴스의 헤더에 토큰 설정
-            apiService.axiosInstance.defaults.headers.Authorization = `Bearer ${token}`;
-            
-            set({
-              isLoggedIn: true,
-              userInfo: {
-                id: username,
-                username: username,
-                name: username,
-                type: 'admin'
-              },
-              lastActivity: Date.now(),
-              showLogoutPrompt: false
-            });
-            
-            get().startAutoLogout();
-            return { success: true };
+          console.log('로그인 응답:', response);
+          const data = response.data;
+          console.log('로그인 데이터:', data);
+
+          // 로그인 실패 처리
+          if (data.accessToken === null || data.message) {
+            console.log('로그인 실패:', data.message);
+            return { 
+              success: false, 
+              message: data.message || '로그인에 실패했습니다.' 
+            };
           }
-          return { success: false, message: '로그인에 실패했습니다.' };
+
+          // 토큰 저장
+          localStorage.setItem('accessToken', data.accessToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
+          
+          // 사용자 정보 저장
+          localStorage.setItem('userId', acnt_id);
+          localStorage.setItem('userRoles', JSON.stringify(data.roles || []));
+          
+          // axios 인스턴스의 헤더에 토큰 설정
+          axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
+          
+          const userInfo = {
+            id: acnt_id,
+            username: acnt_id,
+            name: data.user?.acnt_nm || acnt_id,
+            type: data.roles?.includes('ROLE_ADMIN') ? 'admin' : 'user',
+            acnt_seq: data.user?.acnt_seq,
+            tel_no: data.user?.tel_no,
+            mail_addr: data.user?.mail_addr,
+            sms_agree_flag: data.user?.sms_agree_flag,
+            email_agree_flag: data.user?.email_agree_flag
+          };
+          
+          console.log('로그인 성공, 사용자 정보:', userInfo);
+          
+          set({
+            isLoggedIn: true,
+            userInfo,
+            lastActivity: Date.now(),
+            showLogoutPrompt: false
+          });
+          
+          get().startAutoLogout();
+          return { success: true };
         } catch (error) {
           console.error('로그인 중 오류:', error);
-          return { success: false, message: '로그인 중 오류가 발생했습니다.' };
+          console.log('오류 세부 정보:', {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            responseData: error.response?.data
+          });
+          return { 
+            success: false, 
+            message: error.response?.data?.message || '로그인 중 오류가 발생했습니다.' 
+          };
         }
       },
 
-      // 관리자 로그인 시뮬레이션
-      loginAsAdmin: () => {
-        set({
-          isLoggedIn: true,
-          userInfo: {
-            id: 'admin',
-            username: 'admin',
-            name: '관리자',
-            type: 'admin'
-          },
-          lastActivity: Date.now(),
-          showLogoutPrompt: false
-        });
-        get().startAutoLogout();
-        return { success: true, message: '관리자로 로그인되었습니다.' };
-      },
+      
 
       // 로그아웃
       logout: () => {
         // 쿠키에서 토큰 삭제
         deleteCookie('accessToken');
         deleteCookie('refreshToken');
+        
+        // 로컬 스토리지에서 토큰 삭제
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userRoles');
         
         set({
           isLoggedIn: false,
@@ -97,21 +131,27 @@ const useAuthStore = create(
       // 토큰 갱신
       refreshToken: async () => {
         try {
-          const refreshToken = getCookie('refreshToken');
+          const refreshToken = localStorage.getItem('refreshToken');
           if (!refreshToken) {
             throw new Error('리프레시 토큰이 없습니다.');
           }
 
-          const response = await apiService.post('/auth/refresh', { refreshToken });
-          const { token } = response.data;
+          const response = await axiosInstance.post('/auth/refresh', { refreshToken });
+          const data = response.data;
 
-          // 새로운 액세스 토큰을 httpOnly 쿠키에 저장
-          setCookie('accessToken', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            maxAge: AUTO_LOGOUT_TIME / 1000
-          });
+          if (!data.accessToken) {
+            throw new Error('토큰 갱신에 실패했습니다.');
+          }
+
+          // 새로운 액세스 토큰 저장
+          localStorage.setItem('accessToken', data.accessToken);
+          
+          if (data.refreshToken) {
+            localStorage.setItem('refreshToken', data.refreshToken);
+          }
+          
+          // axios 인스턴스의 헤더에 새 토큰 설정
+          axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
 
           return { success: true };
         } catch (error) {
@@ -168,6 +208,53 @@ const useAuthStore = create(
   )
 );
 
+export const useDupIdCheck = create((set) => ({
+  isIdAvailable: false,
+  isChecking: false,
+  error: null,
+  
+  checkIdDuplicate: async (id) => {
+    set({ isChecking: true, error: null });
+    try {
+      const response = await axiosInstance.post('/api/checkId', { acnt_id: id });
+      const result = {
+        isIdAvailable: response.data.isIdAvailable,
+        message: response.data.isIdAvailable 
+          ? '사용 가능한 아이디입니다.' 
+          : '이미 사용 중인 아이디입니다.'
+      };
+      
+      set({ 
+        isIdAvailable: result.isIdAvailable, 
+        isChecking: false 
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('아이디 확인 중 오류:', error); // 개발자를 위한 로그만 남김
+      
+      set({ 
+        isChecking: false, 
+        error: '아이디 확인 중 오류가 발생했습니다' 
+      });
+      
+      // 일반적인 오류 메시지만 반환
+      return {
+        isIdAvailable: false,
+        message: '아이디 확인 중 오류가 발생했습니다',
+        error: true
+      };
+    }
+  }
+}));
+
+export const registerUser = create((set) => ({
+  register: async (userData) => {
+    const response = await axiosInstance.post('/api/loginProc', userData);
+    set({ isRegistered: response.data.isRegistered });
+  }
+}));
+
 // IdleTimer 컴포넌트
 export const IdleTimerProvider = ({ children }) => {
   const { updateLastActivity, isLoggedIn } = useAuthStore();
@@ -184,5 +271,52 @@ export const IdleTimerProvider = ({ children }) => {
 
   return children;
 };
+
+// 회원가입 프로세스 관리 스토어
+export const useJoinStore = create(
+  persist(
+    (set) => ({
+      // 회원가입 진행 상태
+      joinProcess: {
+        agreementCompleted: false,
+        registerCompleted: false
+      },
+      
+      // 약관 동의 완료 설정
+      setAgreementCompleted: (status = true) => {
+        set((state) => ({
+          joinProcess: {
+            ...state.joinProcess,
+            agreementCompleted: status
+          }
+        }));
+      },
+      
+      // 회원정보 등록 완료 설정
+      setRegisterCompleted: (status = true) => {
+        set((state) => ({
+          joinProcess: {
+            ...state.joinProcess,
+            registerCompleted: status
+          }
+        }));
+      },
+      
+      // 회원가입 프로세스 초기화 (완료 또는 취소 시)
+      resetJoinProcess: () => {
+        set({
+          joinProcess: {
+            agreementCompleted: false,
+            registerCompleted: false
+          }
+        });
+      }
+    }),
+    {
+      name: 'join-process-storage',
+      partialize: (state) => ({ joinProcess: state.joinProcess })
+    }
+  )
+);
 
 export default useAuthStore;

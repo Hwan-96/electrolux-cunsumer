@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import JoinHeader from '@/components/layout/JoinHeader';
+// import JoinHeader from '@/components/layout/JoinHeader';
 import { Inbox, Top, BotBtn } from './JoinStyles';
+import { useJoinStore } from '@/stores/authStore';
 
 const Agreement = () => {
   const navigate = useNavigate();
+  const { setAgreementCompleted, resetJoinProcess } = useJoinStore();
   const [allChecked, setAllChecked] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [optionalPrivacyChecked, setOptionalPrivacyChecked] = useState(false);
+
+  // 컴포넌트 마운트 시 회원가입 프로세스 초기화
+  useEffect(() => {
+    resetJoinProcess();
+  }, [resetJoinProcess]);
 
   useEffect(() => {
     // 모든 약관(필수 + 선택)이 체크되었는지 확인
@@ -29,12 +36,17 @@ const Agreement = () => {
       alert('필수 약관에 동의해주세요.');
       return;
     }
+    
+    // 약관 동의 완료 상태 업데이트
+    setAgreementCompleted(true);
+    
+    // 회원정보 입력 페이지로 이동
     navigate('/join/register');
   };
 
   return (
-    <div className="contents_wrap">
-      <JoinHeader />
+    <div className="contents_wrap" style={{ backgroundColor: '#fff', paddingTop: '0px' }}>
+      {/* <JoinHeader /> */}
       <div className="join_top">
         <Inbox>
           <ul><img src="../../../join/top_logo.png" alt="Electrolux" /></ul>

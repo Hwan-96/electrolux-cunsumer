@@ -1,4 +1,4 @@
-import React from 'react';
+/* import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logoImages } from '@/utils/data.js';
 import styled from 'styled-components';
@@ -117,4 +117,4 @@ const JoinHeader = () => {
   );
 };
 
-export default JoinHeader; 
+export default JoinHeader;  */

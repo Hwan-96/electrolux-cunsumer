@@ -9,7 +9,7 @@ import { sanitizeObject, generateCspHeader } from './security';
 const USE_MOCK = import.meta.env.DEV; // 개발 환경에서는 true, 프로덕션에서는 false
 
 // API 기본 URL 설정
-const API_BASE_URL = 'http://localhost';
+const API_BASE_URL = 'http://localhost:80';
 
 // API 요청 기본 설정
 const defaultConfig = {
@@ -118,6 +118,22 @@ axiosInstance.post = async (url, data = {}, config = {}) => {
   return response.data;
 };
 
+// axiosInstance.put = async (url, data = {}, config = {}) => {
+//   const response = await originalPut(url, data, {
+//     ...defaultConfig,
+//     ...config
+//   });
+//   return response.data;
+// };
+
+// axiosInstance.delete = async (url, config = {}) => {
+//   const response = await originalDelete(url, {
+//     ...defaultConfig,
+//     ...config
+//   });
+//   return response.data;
+// };
+
 // API 요청 유틸리티
 const apiService = {
   // axios 인스턴스 공개
@@ -142,6 +158,95 @@ const apiService = {
     console.log('로그인 응답:', response);
     return response.data;
   },
+
+  // // PUT 요청
+  // put: async (url, data = {}, config = {}) => {
+  //   const response = await axiosInstance.put(url, data, {
+  //     ...defaultConfig,
+  //     ...config
+  //   });
+  //   return response.data;
+  // },
+
+  // // DELETE 요청
+  // delete: async (url, config = {}) => {
+  //   const response = await axiosInstance.delete(url, {
+  //     ...defaultConfig,
+  //     ...config
+  //   });
+  //   return response.data;
+  // },
+
+  // // 파일 업로드
+  // upload: async (url, file, config = {}) => {
+  //   const formData = new FormData();
+  //   formData.append('file', file);
+
+  //   const response = await axiosInstance.post(url, formData, {
+  //     ...defaultConfig,
+  //     ...config,
+  //     headers: {
+  //       'Content-Type': 'multipart/form-data'
+  //     }
+  //   });
+  //   return response.data;
+  // },
+
+  // // 지역 목록 조회
+  // getRegions: async () => {
+  //   if (USE_MOCK) {
+  //     return { data: getAllRegions() };
+  //   }
+    
+  //   try {
+  //     return await axiosInstance.get('/regions');
+  //   } catch (error) {
+  //     console.error('지역 목록 조회 오류:', error);
+  //     throw error;
+  //   }
+  // },
+  
+  // // 시군구 목록 조회
+  // getCitiesByRegion: async (region) => {
+  //   if (USE_MOCK) {
+  //     return { data: getAllCitiesByRegion(region).map(city => ({ value: city, label: city })) };
+  //   }
+    
+  //   try {
+  //     return await axiosInstance.get(`/regions/${region}/cities`);
+  //   } catch (error) {
+  //     console.error('시군구 목록 조회 오류:', error);
+  //     throw error;
+  //   }
+  // },
+  
+  // // 서비스 센터 목록 조회
+  // getServiceCenters: async (params) => {
+  //   if (USE_MOCK) {
+  //     return mockApiService.getServiceCenters(params);
+  //   }
+    
+  //   try {
+  //     return await axiosInstance.get('/service-centers', { params });
+  //   } catch (error) {
+  //     console.error('서비스 센터 목록 조회 오류:', error);
+  //     throw error;
+  //   }
+  // },
+  
+  // // 서비스 센터 상세 조회
+  // getServiceCenterById: async (id) => {
+  //   if (USE_MOCK) {
+  //     return mockApiService.getServiceCenterById(id);
+  //   }
+    
+  //   try {
+  //     return await axiosInstance.get(`/service-centers/${id}`);
+  //   } catch (error) {
+  //     console.error('서비스 센터 상세 조회 오류:', error);
+  //     throw error;
+  //   }
+  // },
   
   // 로그아웃 함수
   logout: () => {
@@ -151,6 +256,28 @@ const apiService = {
     delete axiosInstance.defaults.headers.Authorization;
     return { success: true, message: '로그아웃되었습니다.' };
   },
+  
+  /* 
+  // 테스트 사용자 로그인 함수
+  loginTestUser: () => {
+    const testToken = 'test_user_token';
+    localStorage.setItem('token', testToken);
+    localStorage.setItem('userId', 'test_user');
+    axiosInstance.defaults.headers.Authorization = `Bearer ${testToken}`;
+    console.log('로컬스토리지에 토큰 저장:', localStorage.getItem('token'));
+    console.log('axios 헤더에 토큰 설정:', axiosInstance.defaults.headers.Authorization);
+    return { success: true, message: '테스트 사용자로 로그인되었습니다.' };
+  },
+  
+  // 관리자 로그인 함수
+  loginAdmin: () => {
+    const adminToken = 'test_admin_token';
+    localStorage.setItem('token', adminToken);
+    localStorage.setItem('userId', 'admin');
+    axiosInstance.defaults.headers.Authorization = `Bearer ${adminToken}`;
+    return { success: true, message: '관리자로 로그인되었습니다.' };
+  },
+  */
   
   // 현재 로그인한 사용자 ID 가져오기
   getCurrentUserId: () => {

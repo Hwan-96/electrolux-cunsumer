@@ -70,9 +70,10 @@ const Header = () => {
                   <li><Link to="/mng">관리자페이지</Link></li>
                 )}
                 <li>
-                  <a href="https://member.electroluxconsumer.co.kr/mypage/?contents=mypage_info" target="_blank" rel="noopener noreferrer">
+                  {/* <a href="https://member.electroluxconsumer.co.kr/mypage/?contents=mypage_info" target="_blank" rel="noopener noreferrer">
                     회원정보수정
-                  </a>
+                  </a> */}
+                  <Link to="/mem/cs">회원정보수정</Link>
                 </li>
                 <li><Link to="/qna">1:1상담내역</Link></li>
                 <li><a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>로그아웃</a></li>

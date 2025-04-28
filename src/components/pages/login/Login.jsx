@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import PathNav from '@/components/common/PathNav';
 import Loading from '@/components/common/Loading';
 import useAuthStore from '@/stores/authStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { sanitizeInput } from '@/utils/inputValidation';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuthStore();
   const [formData, setFormData] = useState({
     acnt_id: '',
@@ -14,6 +15,9 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // 이전 페이지 경로 가져오기
+  const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,7 +37,16 @@ const Login = () => {
       const result = await login(formData.acnt_id, formData.acnt_pw);
       console.log('로그인 결과:', result);
       if (result.success) {
-        navigate('/');
+        // 사용자 정보 가져오기
+        const { userInfo } = useAuthStore.getState();
+        
+        // 관리자인 경우 관리자 페이지로 이동
+        if (userInfo?.type === 'admin') {
+          navigate('/mng');
+        } else {
+          // 일반 사용자인 경우 이전 페이지 또는 홈으로 이동
+          navigate(from);
+        }
       } else {
         setError(result.message || '로그인에 실패했습니다.');
       }

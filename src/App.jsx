@@ -32,6 +32,8 @@ import Event from '@/components/pages/event/Event';
 import NotFound from '@/components/pages/NotFound';
 import PrivateRoute from '@/components/common/PrivateRoute';
 import AdminRoute from '@/components/common/AdminRoute';
+import JoinRoute from '@/components/common/JoinRoute';
+import UserInfo from '@/components/pages/mypage/UserInfo';
 import useAuthStore from './stores/authStore';
 import { IdleTimerProvider } from './stores/authStore';
 import LogoutPrompt from './components/common/LogoutPrompt';
@@ -87,9 +89,21 @@ function App() {
               <Route path="/down/cleanup/:id" element={<CleanupDetail />} />
               <Route path="/event/*" element={<Event />} />
 
-              <Route path="/join/agreement" element={<Agreement />} />
-              <Route path="/join/register" element={<Register />} />
-              <Route path="/join/complete" element={<Complete />} />
+              <Route path="/join/agreement" element={
+                <JoinRoute step="agreement">
+                  <Agreement />
+                </JoinRoute>
+              } />
+              <Route path="/join/register" element={
+                <JoinRoute step="register">
+                  <Register />
+                </JoinRoute>
+              } />
+              <Route path="/join/complete" element={
+                <JoinRoute step="complete">
+                  <Complete />
+                </JoinRoute>
+              } />
               
               {/* 보호된 페이지들 - 로그인 필요 */}
               <Route path="/qna/form" element={
@@ -102,6 +116,13 @@ function App() {
                   <QnaDetail />
                 </PrivateRoute>
               } />
+
+              <Route path="/mem/cs" element={
+                <PrivateRoute>
+                  <UserInfo />
+                </PrivateRoute>
+              } />
+
               
               {/* 관리자 전용 페이지들 */}
               <Route path="/mng/*" element={

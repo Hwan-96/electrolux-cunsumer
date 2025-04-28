@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import JoinHeader from '@/components/layout/JoinHeader';
 import { Inbox, Top, BotBtn } from './JoinStyles';
 import { sanitizeInput } from '@/utils/inputValidation';
-import { registerUser, checkIdDuplicate } from '@/services/authService';
 import AlertPopup from '@/components/common/popup/AlertPopup';
 import ConfirmPopup from '@/components/common/popup/ConfirmPopup';
 import DaumPost from '@/components/common/popup/DaumPost';
+import { useDupIdCheck, registerUser, useJoinStore } from '@/stores/authStore';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { checkIdDuplicate } = useDupIdCheck();
+  const { register } = registerUser();
   const [formData, setFormData] = useState({
     MemberId: '',
     MemberPwd: '',
@@ -40,6 +41,30 @@ const Register = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [confirmMessage, setConfirmMessage] = useState('');
+  const [productList, setProductList] = useState([1]);
+  const [showProductSection, setShowProductSection] = useState(false);
+  const [showProfileSection, setShowProfileSection] = useState(false);
+
+  const handleAddProduct = () => {
+    setShowProductSection(prev => !prev);
+  }
+
+  const handleAddProductItem = () => {
+    if (productList.length < 10) {
+      setProductList(prev => [...prev, prev.length + 1]);
+    } else {
+      setAlertMessage('최대 10개까지만 추가 가능합니다.');
+      setShowAlert(true);
+    }
+  }
+
+  const handleRemoveProductItem = (index) => {
+    setProductList(prev => prev.filter((_, i) => i !== index));
+  }
+
+  const handleShowProfileSection = () => {
+    setShowProfileSection(prev => !prev);
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,15 +115,33 @@ const Register = () => {
   };
 
   const handleIdCheck = async () => {
-    try {
-      const result = await checkIdDuplicate(formData.MemberId);
-      setIsIdAvailable(result.isAvailable);
-      setAlertMessage(result.isAvailable ? '사용 가능한 아이디입니다.' : '이미 사용 중인 아이디입니다.');
+    // 아이디 필드 검증
+    if (!formData.MemberId) {
+      setAlertMessage('아이디를 입력해주세요.');
       setShowAlert(true);
-    } catch (_) { // eslint-disable-line no-unused-vars
-      setAlertMessage('아이디 확인 중 오류가 발생했습니다.');
-      setShowAlert(true);
+      return;
     }
+    
+    // 아이디 유효성 검사 (4~16자의 영문소문자, 숫자)
+    const idRegex = /^[a-z0-9]{4,16}$/;
+    if (!idRegex.test(formData.MemberId)) {
+      setAlertMessage('아이디는 4~16자의 영문 소문자, 숫자만 사용 가능합니다.');
+      setShowAlert(true);
+      return;
+    }
+    
+    // 중복 확인 전 상태 초기화
+    setIsIdAvailable(false);
+    
+    // 아이디 중복 확인 API 호출 - 스토어에서 오류 처리까지 담당
+    const result = await checkIdDuplicate(formData.MemberId);
+    
+    // 결과를 UI에 표시
+    setIsIdAvailable(result.isIdAvailable);
+    setAlertMessage(result.message || (result.isIdAvailable 
+      ? '사용 가능한 아이디입니다.' 
+      : '이미 사용 중인 아이디입니다.'));
+    setShowAlert(true);
   };
 
   const handleSubmit = async (e) => {
@@ -131,7 +174,13 @@ const Register = () => {
     };
 
     try {
-      await registerUser(finalFormData);
+      await register(finalFormData);
+      
+      // 회원정보 등록 완료 상태 업데이트
+      const { setRegisterCompleted } = useJoinStore.getState();
+      setRegisterCompleted(true);
+      
+      // 가입 완료 페이지로 이동
       navigate('/join/complete');
     } catch (_) { // eslint-disable-line no-unused-vars
       setAlertMessage('회원가입 중 오류가 발생했습니다.');
@@ -149,8 +198,7 @@ const Register = () => {
   };
 
   return (
-    <div className="contents_wrap">
-      <JoinHeader />
+    <div className="contents_wrap" style={{ backgroundColor: '#fff', paddingTop: '0px' }}>
       <div className="join_top">
         <Inbox>
           <ul><img src="../../../join/top_logo.png" alt="Electrolux" /></ul>
@@ -306,80 +354,82 @@ const Register = () => {
             <div className="form_tit">
               (선택) 일렉트로룩스 제품을 구매한적이 있으신가요?<br />
               <span>※ 제품정보를 입력하실 경우 상담 진행 시 빠른 상담을 받으실 수 있습니다.</span>
-              <div className="join_add_product_btn">구매정보등록</div>
+              <div className="join_add_product_btn" onClick={handleAddProduct}>구매정보등록</div>
             </div>
 
-            <div className="add_product">
+            <div className="add_product" style={{ display: showProductSection ? 'block' : 'none' }}>
               <div className="product_list">
-                <div className="product">
-                  <div className="form_bd add">
-                    <div className="pdel_prod" style={{ display: 'none' }}>X 삭제</div>
-                    <ul>
-                      <li>구매제품명</li>
-                      <li>
-                        <select name="ProductBrand[]" className="product_sel" id="product1_1">
-                          <option value="">브랜드 선택</option>
-                        </select>
-                        <select name="ProductGroup[]" className="product_sel" id="product1_2">
-                          <option value="">제품군 선택</option>
-                        </select>
-                        <select name="ProductName[]" className="product_sel" id="product1_3">
-                          <option value="">제품명 선택</option>
-                        </select>
-                        <select name="ProductModel[]" className="product_sel" id="product1_4" data-ultra="0">
-                          <option value="">제품모델선택</option>
-                        </select>
-                      </li>
-                    </ul>
-                    <ul>
-                      <li>제품 시리얼번호</li>
-                      <li>
-                        <input name="ProductSerial1[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial2[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial3[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial4[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial5[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial6[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial7[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial8[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
-                        <input name="ProductSerial[]" type="hidden" />
-                        <div className="extxt">(구매하신 제품의 시리얼넘버 8자리를 넣어주세요.제품 바닥면 스티커 내 기재되어있습니다.)</div>
-                      </li>
-                    </ul>
-                    <ul>
-                      <li>구매시기</li>
-                      <li>
-                        <select name="ProductBuyYear[]">
-                          <option value="">년도 선택</option>
-                        </select>
-                        <select name="ProductBuyMonth[]">
-                          <option value="">월 선택</option>
-                        </select>
-                      </li>
-                    </ul>
-                    <ul>
-                      <li>구매처/지점명</li>
-                      <li>
-                        <dt>구매처 <input name="BuyPlace[]" type="text" style={{ width: '200px' }} maxLength={20} /></dt>
-                        <dt>지점명 <input name="BuyBrench[]" type="text" style={{ width: '200px' }} maxLength={20} /></dt>
-                        <div className="extxt2">(매장에서 구입 시 지점명까지 입력해주세요. ex) 구매처:신세계백화점 / 지점:강남점)</div>
-                      </li>
-                    </ul>
+                {productList.map((_, index) => (
+                  <div className="product" key={index}>
+                    <div className="form_bd add">
+                      <div className="pdel_prod" style={{ display: index > 0 ? 'block' : 'none' }} onClick={() => handleRemoveProductItem(index)}>X 삭제</div>
+                      <ul>
+                        <li>구매제품명</li>
+                        <li>
+                          <select name="ProductBrand[]" className="product_sel" id={`product${index + 1}_1`}>
+                            <option value="">브랜드 선택</option>
+                          </select>
+                          <select name="ProductGroup[]" className="product_sel" id={`product${index + 1}_2`}>
+                            <option value="">제품군 선택</option>
+                          </select>
+                          <select name="ProductName[]" className="product_sel" id={`product${index + 1}_3`}>
+                            <option value="">제품명 선택</option>
+                          </select>
+                          <select name="ProductModel[]" className="product_sel" id={`product${index + 1}_4`} data-ultra="0">
+                            <option value="">제품모델선택</option>
+                          </select>
+                        </li>
+                      </ul>
+                      <ul>
+                        <li>제품 시리얼번호</li>
+                        <li>
+                          <input name="ProductSerial1[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial2[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial3[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial4[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial5[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial6[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial7[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial8[]" type="text" style={{ width: '20px' }} maxLength={1} className="serial" />
+                          <input name="ProductSerial[]" type="hidden" />
+                          <div className="extxt">(구매하신 제품의 시리얼넘버 8자리를 넣어주세요.제품 바닥면 스티커 내 기재되어있습니다.)</div>
+                        </li>
+                      </ul>
+                      <ul>
+                        <li>구매시기</li>
+                        <li>
+                          <select name="ProductBuyYear[]">
+                            <option value="">년도 선택</option>
+                          </select>
+                          <select name="ProductBuyMonth[]">
+                            <option value="">월 선택</option>
+                          </select>
+                        </li>
+                      </ul>
+                      <ul>
+                        <li>구매처/지점명</li>
+                        <li>
+                          <dt>구매처 <input name="BuyPlace[]" type="text" style={{ width: '200px' }} maxLength={20} /></dt>
+                          <dt>지점명 <input name="BuyBrench[]" type="text" style={{ width: '200px' }} maxLength={20} /></dt>
+                          <div className="extxt2">(매장에서 구입 시 지점명까지 입력해주세요. ex) 구매처:신세계백화점 / 지점:강남점)</div>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
               <div className="form_bd_add">
                 ※ 최대 10개까지 등록가능합니다.
-                <div>제품추가등록</div>
+                <div onClick={handleAddProductItem}>제품추가등록</div>
               </div>
             </div>
 
             <div className="form_tit">
               (선택) 추가항목을 기입하시면 맞춤 혜택정보를 제공해드립니다.
-              <div className="join_add_profile_btn">추가정보등록</div>
+              <div className="join_add_profile_btn" onClick={handleShowProfileSection}>추가정보등록</div>
             </div>
 
-            <div className="add_profile">
+            <div className="add_profile" style={{ display: showProfileSection ? 'block' : 'none' }}>
               <div className="form_bd add">
                 <ul>
                   <li>생년월일</li>

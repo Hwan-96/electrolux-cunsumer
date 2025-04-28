@@ -1,14 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import JoinHeader from '@/components/layout/JoinHeader';
 import { Inbox, Top } from './JoinStyles';
+import { useJoinStore } from '@/stores/authStore';
 
 const Complete = () => {
   const navigate = useNavigate();
+  const { resetJoinProcess } = useJoinStore();
+  
+  // 컴포넌트 언마운트 시 회원가입 프로세스 초기화
+  useEffect(() => {
+    return () => {
+      resetJoinProcess();
+    };
+  }, [resetJoinProcess]);
 
   return (
-    <div className='contents_wrap'>
-      <JoinHeader />
+    <div className='contents_wrap' style={{ backgroundColor: '#fff', paddingTop: '0px' }}>
       <div className='join_top'>
         <Inbox>
           <ul><img src="../../../join/top_logo.png" alt="Electrolux" /></ul>
