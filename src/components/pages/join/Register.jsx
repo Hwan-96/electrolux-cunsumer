@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Inbox, Top, BotBtn } from './JoinStyles';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 import AlertPopup from '@/components/common/popup/AlertPopup';
 import ConfirmPopup from '@/components/common/popup/ConfirmPopup';
 import DaumPost from '@/components/common/popup/DaumPost';

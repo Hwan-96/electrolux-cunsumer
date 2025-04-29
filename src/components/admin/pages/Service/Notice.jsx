@@ -1,6 +1,6 @@
 import React from 'react';
 import Search from '@/components/admin/common/Search';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 import { DataTable } from '@/components/admin/common/DataTable';
 import { getMockData, updateMockData, deleteMockData } from '@/components/admin/mock/MOCK_Notice';
 import { noticeSearch } from '@/components/admin/utils/search/noticeSearch';

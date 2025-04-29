@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import apiService from '@/utils/api';
+import { axiosInstance } from '@/utils/api';
 
 const useEventStore = create((set) => ({
   // 이벤트 목록 상태
@@ -12,7 +12,7 @@ const useEventStore = create((set) => ({
   getEvents: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await apiService.get('/events');
+      const response = await axiosInstance.get('/events');
       set({ events: response.data, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
@@ -24,7 +24,7 @@ const useEventStore = create((set) => ({
   getEventById: async (id) => {
     set({ loading: true, error: null });
     try {
-      const response = await apiService.get(`/events/${id}`);
+      const response = await axiosInstance.get(`/events/${id}`);
       set({ currentEvent: response.data, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
@@ -36,7 +36,7 @@ const useEventStore = create((set) => ({
   participateEvent: async (eventId, userId) => {
     set({ loading: true, error: null });
     try {
-      await apiService.post(`/events/${eventId}/participate`, { userId });
+      await axiosInstance.post(`/events/${eventId}/participate`, { userId });
       set({ loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });

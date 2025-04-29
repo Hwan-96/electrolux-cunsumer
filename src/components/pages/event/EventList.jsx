@@ -5,7 +5,7 @@ import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
 import SearchForm from '@/components/common/SearchForm';
 import styled from 'styled-components';
-import useApi from '@/utils/useApi';
+import { axiosInstance } from '@/utils/api';
 
 const EventListUl = styled.ul`
   display: grid;
@@ -33,54 +33,65 @@ const EventList = () => {
   const [searchKey, setSearchKey] = useState('TITLE');
   const [searchValue, setSearchValue] = useState('');
   const navigate = useNavigate();
-
-  // API 요청을 위한 useApi 훅 사용
-  const {
-    data: apiResponse,
-    loading,
-    error,
-    updateParams
-  } = useApi('/events', {
-    page: currentPage,
-    limit: ITEMS_PER_PAGE,
-    flag,
-    searchType: searchKey,
-    searchKeyword: searchValue
-  });
-
-  // API로부터 데이터 추출
-  const events = apiResponse?.data || [];
-  const totalItems = apiResponse?.meta?.total || 0;
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  // 이벤트 목록 조회
+  const fetchEvents = async (params) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axiosInstance.get('/events', { params });
+      setEvents(response.data.data || []);
+      setTotalItems(response.data.meta?.total || 0);
+    } catch (err) {
+      setError(err.message);
+      setEvents([]);
+      setTotalItems(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // flag에 따라 탭 변경 (1: 진행중, 2: 종료, 3: 당첨자발표)
   useEffect(() => {
     setFlag(searchParams.get('flag') || '1');
   }, [searchParams]);
 
-  // flag 변경 시 API 요청 업데이트
+  // flag 변경 시 데이터 재요청
   useEffect(() => {
-    updateParams({
-      flag,
+    fetchEvents({
       page: 1,
+      limit: ITEMS_PER_PAGE,
+      flag,
       searchType: searchKey,
       searchKeyword: searchValue
     });
     setCurrentPage(1);
-  }, [flag, updateParams]);
+  }, [flag]);
 
   // 페이지 변경 시 데이터 재요청
   useEffect(() => {
-    updateParams({ page: currentPage });
-  }, [currentPage, updateParams]);
+    fetchEvents({
+      page: currentPage,
+      limit: ITEMS_PER_PAGE,
+      flag,
+      searchType: searchKey,
+      searchKeyword: searchValue
+    });
+  }, [currentPage]);
 
   // 검색 기능
   const handleSearch = () => {
-    updateParams({
+    fetchEvents({
       searchType: searchKey,
       searchKeyword: searchValue,
       flag,
-      page: 1
+      page: 1,
+      limit: ITEMS_PER_PAGE
     });
     setCurrentPage(1);
   };
@@ -89,11 +100,12 @@ const EventList = () => {
   const handleReset = () => {
     setSearchKey('TITLE');
     setSearchValue('');
-    updateParams({
+    fetchEvents({
       searchType: 'TITLE',
       searchKeyword: '',
       flag,
-      page: 1
+      page: 1,
+      limit: ITEMS_PER_PAGE
     });
     setCurrentPage(1);
   };

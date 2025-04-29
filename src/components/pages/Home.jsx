@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Carousel from '../common/Carousel';
-import FindCenter from '../common/FindCenter';
+import { FindCenter } from '../common/FindCenter';
 import { mainBoardData, mainBannerData, mainVideoImage, mainVideoUrl } from '@/utils/data.js';
 
 const Home = () => {

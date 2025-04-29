@@ -1,130 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
-import Loading from '@/components/common/Loading';
-import useDownloadStore from '@/stores/downLoadStore';
+import { axiosInstance } from '@/utils/api';
 
 const PrdGuideDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [prdGuide, setPrdGuide] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
-  // 다운로드 스토어 사용
-  const { currentPrdGuide: product, getPrdGuideDetail } = useDownloadStore();
-  
-  // 컴포넌트 마운트 시 데이터 로드
+
+  const fetchPrdGuideDetail = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get(`/api/prd-guide/${id}`);
+      setPrdGuide(response.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        await getPrdGuideDetail(id);
-      } catch (err) {
-        console.error('제품 사용설명서 상세 정보 조회 오류:', err);
-        setError('제품 사용설명서를 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [id, getPrdGuideDetail]);
-  
-  // 파일 다운로드 처리
-  const handleDownload = (fileName) => {
-    console.log(`파일 다운로드: ${fileName}`);
-    // 실제 다운로드 로직 구현 필요
-    alert('파일 다운로드를 시작합니다.');
+    fetchPrdGuideDetail();
+  }, [id]);
+
+  const handleDownload = async () => {
+    try {
+      const response = await axiosInstance.get(`/api/prd-guide/${id}/download`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${prdGuide.title}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      error
+      setError('다운로드 중 오류가 발생했습니다.');
+    }
   };
-  
-  // 목록으로 돌아가기
-  const handleBackToList = () => {
-    navigate('/down/prd_guide');
-  };
+
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div>에러: {error}</div>;
+  if (!prdGuide) return <div>제품 사용설명서를 찾을 수 없습니다.</div>;
 
   return (
     <div id="sub-container">
-      {/* 경로 표시 */}
-      <PathNav currentPage={["다운로드", "제품사용설명서"]} />
-
-      {/* 콘텐츠 */}
+      <PathNav prevPage="Home" currentPage="다운로드" lastPage="제품 사용설명서" />
       <div id="contents">
         <article className="sub-article">
-          {/* 제목 영역 */}
-          <SubTitleBox 
-            title="제품 사용설명서" 
-            description="구매하신 제품의 사용설명서를 다운로드 받으실 수 있습니다." 
+          <SubTitleBox
+            title="제품 사용설명서"
+            description="제품 사용설명서를 다운로드하실 수 있습니다."
           />
 
-          {/* 탭 메뉴 */}
-          <div className="link-tab mb0">
-            <ul>
-              <li className="on"><Link to="/down/prd_guide">제품 사용설명서</Link></li>
-              <li><Link to="/down/cleanup">청소기 청소요령</Link></li>
-            </ul>
+          <div className="prd-guide-detail">
+            <h2>{prdGuide.title}</h2>
+            <div className="meta-info">
+              <span>작성일: {prdGuide.createdAt}</span>
+              <span>조회수: {prdGuide.viewCount}</span>
+            </div>
+            <div className="content">
+              <p>{prdGuide.description}</p>
+            </div>
+            <div className="actions">
+              <button onClick={handleDownload}>다운로드</button>
+              <button onClick={() => navigate('/down/prd-guide')}>목록으로</button>
+            </div>
           </div>
-
-          {loading ? (
-            <div className="loading-container" style={{textAlign: 'center', padding: '50px 0'}}>
-              <Loading text="데이터를 불러오는 중입니다" showText={true} />
-            </div>
-          ) : error ? (
-            <div className="error-container" style={{textAlign: 'center', padding: '50px 0', color: '#CC0000'}}>
-              {error}
-            </div>
-          ) : product ? (
-            <>
-              {/* HTML 템플릿 구조에 맞춘 상세 내용 */}
-              <div className="bd-view1">
-                {/* 제목 영역 */}
-                <div className="tit-area">
-                  <h4 className="tit">
-                    {product.title}
-                  </h4>
-                  <div className="bd-info-wrap">
-                    <dl className="tit-info">
-                      <dt className="date">작성일</dt>
-                      <dd className="date">
-                        {product.createdAt}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-
-                {/* 내용 영역 */}
-                <div className="output-cts">
-                  <p><b>○ 제품 정보 : {product.brand} {' > '} {product.category} {' > '} {product.productName} {' > '} {product.modelName}</b></p>
-                  <br />
-                  {product.content}
-                </div>
-
-                {/* 첨부파일 영역 */}
-                {product.files && product.files.length > 0 && (
-                  <dl className="dl-tr down">
-                    <dt>첨부파일</dt>
-                    {product.files.map((file, index) => (
-                      <dd key={index}>
-                        <a href="#" onClick={(e) => { e.preventDefault(); handleDownload(file.fileName); }}>
-                          {file.fileName} ({file.fileSize})
-                        </a>
-                      </dd>
-                    ))}
-                  </dl>
-                )}
-              </div>
-
-              {/* 목록 버튼 */}
-              <div className="btn-area1 ta-btm">
-                <a href="#" onClick={(e) => { e.preventDefault(); handleBackToList(); }} className="hgbtn blue01">목록</a>
-              </div>
-            </>
-          ) : (
-            <div className="no-data-container" style={{textAlign: 'center', padding: '50px 0'}}>
-              제품 정보가 없습니다.
-            </div>
-          )}
         </article>
       </div>
     </div>

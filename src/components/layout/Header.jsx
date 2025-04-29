@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { logoImages } from '@/utils/data.js';
 import useAuthStore from '@/stores/authStore';
 
 const Header = () => {
@@ -9,11 +8,6 @@ const Header = () => {
   const [isMyMenuOpen, setIsMyMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   const { isLoggedIn, userInfo, logout } = useAuthStore();
-
-  // 디버깅을 위한 로그 추가
-  // console.log('Header - isLoggedIn:', isLoggedIn);
-  // console.log('Header - userInfo:', userInfo);
-  // console.log('Header - isAdmin:', userInfo?.type === 'admin');
 
   const toggleGnb = () => setIsGnbOpen(!isGnbOpen);
   const toggleSearch = () => setIsSearchOpen(!isSearchOpen);
@@ -38,7 +32,7 @@ const Header = () => {
       <header id="header">
         <h1 className="logo">
           <Link to="/">
-            <img src={logoImages.main} alt="Electrolux 고객센터" />
+            <img src='/images/logo.png' alt="Electrolux 고객센터" />
           </Link>
         </h1>
 

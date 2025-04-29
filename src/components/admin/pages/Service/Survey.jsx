@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Search from '@/components/admin/common/Search';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 import { getMockData, deleteMockData } from '@/components/admin/mock/MOCK_Survey';
 import { DataTable } from '@/components/admin/common/DataTable';
 import { Tag, message, Modal } from 'antd';

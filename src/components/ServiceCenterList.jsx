@@ -1,31 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import useApi from '../utils/useApi';
-import apiService from '../utils/api';
+import { axiosInstance } from '@/utils/api';
 
 const ServiceCenterList = () => {
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [keyword, setKeyword] = useState('');
   const [cities, setCities] = useState([]);
+  const [regions, setRegions] = useState([]);
+  const [centers, setCenters] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   // 지역 목록 데이터 가져오기
-  const { 
-    data: regions = [], 
-    loading: regionsLoading 
-  } = useApi('/regions', {}, true);
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const response = await axiosInstance.get('/regions');
+        setRegions(response.data || []);
+      } catch (err) {
+        console.error('지역 목록 조회 실패:', err);
+        setRegions([]);
+      }
+    };
+    
+    fetchRegions();
+  }, []);
   
   // 서비스센터 데이터 가져오기
-  const { 
-    data: centers = [], 
-    loading, 
-    error,
-    updateParams,
-    fetchData
-  } = useApi('/service-centers', {
-    region: selectedRegion,
-    city: selectedCity,
-    keyword: keyword
-  });
+  const fetchCenters = async (params) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axiosInstance.get('/service-centers', { params });
+      setCenters(response.data || []);
+    } catch (err) {
+      setError(err.message);
+      setCenters([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // 지역 선택 시 시군구 목록 가져오기
   useEffect(() => {
@@ -36,7 +50,7 @@ const ServiceCenterList = () => {
       }
       
       try {
-        const response = await apiService.getCitiesByRegion(selectedRegion);
+        const response = await axiosInstance.get(`/regions/${selectedRegion}/cities`);
         setCities(response.data || []);
       } catch (err) {
         console.error('시군구 목록 조회 실패:', err);
@@ -53,10 +67,11 @@ const ServiceCenterList = () => {
     setSelectedRegion(region);
     setSelectedCity(''); // 지역이 변경되면 시군구 초기화
     
-    // API 파라미터 업데이트
-    updateParams({ 
+    // 서비스센터 데이터 재요청
+    fetchCenters({ 
       region,
-      city: ''
+      city: '',
+      keyword
     });
   };
   
@@ -65,8 +80,12 @@ const ServiceCenterList = () => {
     const city = e.target.value;
     setSelectedCity(city);
     
-    // API 파라미터 업데이트
-    updateParams({ city });
+    // 서비스센터 데이터 재요청
+    fetchCenters({ 
+      region: selectedRegion,
+      city,
+      keyword
+    });
   };
   
   // 키워드 검색 핸들러
@@ -75,8 +94,12 @@ const ServiceCenterList = () => {
     const searchKeyword = e.target.keyword.value;
     setKeyword(searchKeyword);
     
-    // API 파라미터 업데이트
-    updateParams({ keyword: searchKeyword });
+    // 서비스센터 데이터 재요청
+    fetchCenters({ 
+      region: selectedRegion,
+      city: selectedCity,
+      keyword: searchKeyword
+    });
   };
   
   // 로딩 중 표시
@@ -89,7 +112,7 @@ const ServiceCenterList = () => {
     return (
       <div className="error">
         <p>{error}</p>
-        <button onClick={() => fetchData()} className="retry-button">다시 시도</button>
+        <button onClick={() => fetchCenters({ region: selectedRegion, city: selectedCity, keyword })} className="retry-button">다시 시도</button>
       </div>
     );
   }
@@ -106,7 +129,6 @@ const ServiceCenterList = () => {
             id="region-select" 
             value={selectedRegion} 
             onChange={handleRegionChange}
-            disabled={regionsLoading}
           >
             <option value="">전체 지역</option>
             {regions.map((region) => (

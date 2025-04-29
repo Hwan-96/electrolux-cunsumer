@@ -4,11 +4,9 @@ import styled from 'styled-components';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import { Link } from 'react-router-dom';
-import hintIco from '@/images/serial_hint.png';
-import serialHint from '@/images/serialkch2.jpg';
 import useQnaStore from '@/stores/qnaStore';
 import useAuthStore from '@/stores/authStore';
-import { sanitizeInput, sanitizeHtmlContent } from '@/utils/inputValidation';
+import { sanitizeInput, sanitizeHtmlContent } from '@/utils/security';
 
 const TextEditor = styled.div`
   border: 1px solid #ddd;
@@ -541,7 +539,7 @@ const QnaForm = () => {
                       <li className="btn-hint">
                         <img 
                           className="question_icon" 
-                          src={hintIco} 
+                          src='/images/serial_hint.png' 
                           alt="모델명 검색 힌트" 
                           onMouseEnter={() => setIsHintVisible(true)}
                           onMouseLeave={() => setIsHintVisible(false)}
@@ -550,7 +548,7 @@ const QnaForm = () => {
                           className="btn-hint-image" 
                           style={{ display: isHintVisible ? 'block' : 'none' }}
                         >
-                          <img src={serialHint} alt="모델명 검색 힌트 이미지" />
+                          <img src='/images/serialkch2.jpg' alt="모델명 검색 힌트 이미지" />
                         </span>
                       </li>
                     </ul>

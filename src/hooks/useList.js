@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message, Modal } from 'antd';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 
 const useList = ({ 
   mockData, 

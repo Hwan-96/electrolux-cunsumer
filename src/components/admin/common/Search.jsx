@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 
 const SearchContainer = styled.div`
   width: 100%;

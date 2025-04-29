@@ -3,7 +3,6 @@ import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
 import { Link, useSearchParams } from 'react-router-dom';
-import { faqImages } from '@/utils/data.js';
 import SearchForm from '@/components/common/SearchForm';
 import DOMPurify from 'dompurify';
 import useFaqStore from '@/stores/faqStore';
@@ -204,7 +203,7 @@ const Faq = () => {
                         <p className="btn-dir"><span className="hgbtn blue01">FAQ &gt;</span></p>
                       </div>
                       <p className="pic">
-                        <img src={faqImages[index]} alt={type} />
+                        <img src={`/images/faq/${type}.jpg`} alt={type} />
                       </p>
                     </div>
                   </a>

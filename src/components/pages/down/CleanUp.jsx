@@ -3,15 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
-import fileIco from '@/images/ico-file.png';
-import useDownloadStore from '@/stores/downLoadStore';
+import { axiosInstance } from '@/utils/api';
 
 const Cleanup = () => {
   const navigate = useNavigate();
   
   // 상태 관리
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
   const [searchParams, setSearchParams] = useState({
     brand: '',
     category: '',
@@ -22,17 +20,10 @@ const Cleanup = () => {
   const [availableProductNames, setAvailableProductNames] = useState([{ value: '', label: '제품명 선택' }]);
   const [availableModelNames, setAvailableModelNames] = useState([{ value: '', label: '모델명 선택' }]);
 
-  // 다운로드 스토어 사용
-  const {
-    cleanupList: products,
-    cleanupMeta: meta,
-    loading,
-    error,
-    getCleanupList
-  } = useDownloadStore();
-
-  // 총 페이지 수 계산
-  const totalPages = meta?.totalPages || 0;
+  const [cleanupList, setCleanupList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
 
   // 옵션 데이터 관리
   const [options, setOptions] = useState({
@@ -45,33 +36,23 @@ const Cleanup = () => {
   // 옵션 데이터 로딩 상태
   const [optionsLoading, setOptionsLoading] = useState(false);
 
+  const fetchCleanupList = async (params = {}) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get('/api/cleanup', { params });
+      setCleanupList(response.data.data);
+      setMeta(response.data.meta);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    const fetchInitialData = async () => {
-      await getCleanupList({
-        page: 1,
-        limit: itemsPerPage
-      });
-    };
-    
-    fetchInitialData();
-  }, [getCleanupList, itemsPerPage]);
-
-  // 페이지 변경 시 데이터 로드
-  useEffect(() => {
-    // 첫 번째 useEffect에서 이미 처리했으므로 페이지가 1보다 클 때만 호출
-    if (currentPage > 1) {
-      const fetchData = async () => {
-        await getCleanupList({
-          page: currentPage,
-          limit: itemsPerPage,
-          ...searchParams
-        });
-      };
-      
-      fetchData();
-    }
-  }, [currentPage, getCleanupList, itemsPerPage, searchParams]);
+    fetchCleanupList();
+  }, []);
 
   // 옵션 데이터 로드 (임시 데이터)
   useEffect(() => {
@@ -157,12 +138,8 @@ const Cleanup = () => {
   }, [searchParams.productName, options.modelNames]);
 
   // 검색 처리
-  const handleSearch = () => {
-    getCleanupList({
-      page: 1,
-      limit: itemsPerPage,
-      ...searchParams
-    });
+  const handleSearch = (searchParams) => {
+    fetchCleanupList(searchParams);
     setCurrentPage(1); // 검색 시 첫 페이지로 이동
   };
 
@@ -187,16 +164,12 @@ const Cleanup = () => {
     setSearchParams(resetParams);
     setCurrentPage(1);
     
-    getCleanupList({
-      page: 1,
-      limit: itemsPerPage,
-      ...resetParams
-    });
+    fetchCleanupList(resetParams);
   };
 
   // 페이지 이동 처리
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    fetchCleanupList({ ...meta, page });
   };
 
   // 항목 클릭 처리 - 상세 페이지로 이동
@@ -227,7 +200,7 @@ const Cleanup = () => {
           </div>
 
           {/* 검색 옵션 */}
-          <form id="form_search" onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
+          <form id="form_search" onSubmit={(e) => { e.preventDefault(); handleSearch(searchParams); }}>
             <div className="top-search-option">
               <p className="tit">제품 검색하기</p>
               <div className="option-box">
@@ -305,7 +278,7 @@ const Cleanup = () => {
                     />
                   </li>
                   <li className="btn">
-                    <button type="button" className="hgbtn blue02" onClick={handleSearch}>
+                    <button type="button" className="hgbtn blue02" onClick={(e) => { e.preventDefault(); handleSearch(searchParams); }}>
                       검색
                     </button>
                   </li>
@@ -361,22 +334,22 @@ const Cleanup = () => {
                     <tr>
                       <td colSpan="7" className="tac">데이터를 불러오는데 실패했습니다. {error}</td>
                     </tr>
-                  ) : products.length > 0 ? (
-                    products.map(product => (
+                  ) : cleanupList.length > 0 ? (
+                    cleanupList.map(item => (
                       <tr 
-                        key={product.id} 
+                        key={item.id} 
                         style={{ cursor: 'pointer' }}
-                        onClick={() => handleProductClick(product.id)}
+                        onClick={() => handleProductClick(item.id)}
                       >
-                        <td className="bln">{product.id}</td>
-                        <td>{product.brand}</td>
-                        <td>{product.category}</td>
-                        <td>{product.productName}</td>
-                        <td>{product.modelName}</td>
-                        <td>{product.title}</td>
+                        <td className="bln">{item.id}</td>
+                        <td>{item.brand}</td>
+                        <td>{item.category}</td>
+                        <td>{item.productName}</td>
+                        <td>{item.modelName}</td>
+                        <td>{item.title}</td>
                         <td>
-                          {product.hasFile && (
-                            <img src={fileIco} alt="첨부파일" />
+                          {item.hasFile && (
+                            <img src='/images/ico-file.png' alt="첨부파일" />
                           )}
                         </td>
                       </tr>
@@ -392,10 +365,10 @@ const Cleanup = () => {
           </div>
 
           {/* 페이징 - 공통 컴포넌트 사용 */}
-          {!loading && !error && totalPages > 0 && (
+          {!loading && !error && meta.totalPages > 0 && (
             <Pagination 
               currentPage={currentPage}
-              totalPages={totalPages}
+              totalPages={meta.totalPages}
               onPageChange={handlePageChange}
             />
           )}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Search from '@/components/admin/common/Search';
 import useRegionStore from '@/components/admin/store/regionStore';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 import { getMockData, deleteMockData } from '@/components/admin/mock/MOCK_CenterList';
 import { DataTable } from '@/components/admin/common/DataTable';
 import CenterPopup from '@/components/admin/common/CenterPopup';

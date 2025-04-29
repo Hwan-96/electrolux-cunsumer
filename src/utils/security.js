@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify';
 
-// XSS 방지 유틸리티 함수들
+// ===== 기본 입력 검증 =====
 export const sanitizeInput = (input) => {
   if (typeof input !== 'string') return input;
   
@@ -22,51 +22,18 @@ export const sanitizeInput = (input) => {
   return sanitized;
 };
 
-export const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+// ===== URL 및 파라미터 검증 =====
+export const sanitizeUrlParam = (param) => {
+  if (typeof param !== 'string') return '';
+  return encodeURIComponent(param);
 };
 
-export const validatePassword = (password) => {
-  // 최소 8자, 최소 하나의 문자, 하나의 숫자, 하나의 특수문자
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-  return passwordRegex.test(password);
+// ===== 파일 관련 검증 =====
+export const sanitizeFilename = (filename) => {
+  if (typeof filename !== 'string') return '';
+  return filename.replace(/[<>:"/\\|?*]/g, '');
 };
 
-export const sanitizeHtmlContent = (content) => {
-  if (typeof content !== 'string') return content;
-  
-  // DOMPurify를 사용하여 HTML 정제
-  return DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'img', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style'],
-    ALLOW_DATA_ATTR: false,
-    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed'],
-    FORBID_ATTR: ['onclick', 'onerror', 'onload', 'onmouseover', 'onmouseout', 'onkeydown', 'onkeypress', 'onkeyup']
-  });
-};
-
-export const sanitizeObject = (obj) => {
-  if (typeof obj !== 'object' || obj === null) {
-    return obj;
-  }
-
-  const sanitized = Array.isArray(obj) ? [] : {};
-  
-  for (const key in obj) {
-    if (typeof obj[key] === 'string') {
-      sanitized[key] = sanitizeInput(obj[key]);
-    } else if (typeof obj[key] === 'object') {
-      sanitized[key] = sanitizeObject(obj[key]);
-    } else {
-      sanitized[key] = obj[key];
-    }
-  }
-  
-  return sanitized;
-};
-
-// 파일 업로드 검증
 export const validateFileUpload = (file) => {
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   const ALLOWED_FILE_TYPES = [
@@ -90,8 +57,7 @@ export const validateFileUpload = (file) => {
     throw new Error('허용되지 않은 파일 형식입니다.');
   }
 
-  // 파일 이름 검증
-  const fileName = sanitizeInput(file.name);
+  const fileName = sanitizeFilename(file.name);
   if (fileName !== file.name) {
     throw new Error('파일 이름에 허용되지 않은 문자가 포함되어 있습니다.');
   }
@@ -99,13 +65,63 @@ export const validateFileUpload = (file) => {
   return true;
 };
 
-// CSRF 토큰 생성
+// ===== 검색어 검증 =====
+export const sanitizeSearchTerm = (term) => {
+  if (typeof term !== 'string') return '';
+  return term.replace(/[<>]/g, '');
+};
+
+// ===== HTML 컨텐츠 검증 =====
+export const sanitizeHtmlContent = (content) => {
+  if (typeof content !== 'string') return '';
+  
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'img', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style'],
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed'],
+    FORBID_ATTR: ['onclick', 'onerror', 'onload', 'onmouseover', 'onmouseout', 'onkeydown', 'onkeypress', 'onkeyup']
+  });
+};
+
+// ===== 사용자 인증 검증 =====
+export const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+export const validatePassword = (password) => {
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+  return passwordRegex.test(password);
+};
+
+// ===== 객체 검증 =====
+export const sanitizeObject = (obj) => {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+
+  const sanitized = Array.isArray(obj) ? [] : {};
+  
+  for (const key in obj) {
+    if (typeof obj[key] === 'string') {
+      sanitized[key] = sanitizeInput(obj[key]);
+    } else if (typeof obj[key] === 'object') {
+      sanitized[key] = sanitizeObject(obj[key]);
+    } else {
+      sanitized[key] = obj[key];
+    }
+  }
+  
+  return sanitized;
+};
+
+// ===== CSRF 보호 =====
 export const generateCsrfToken = () => {
   const token = crypto.randomUUID();
   return token;
 };
 
-// CSRF 토큰 검증
 export const validateCsrfToken = (token, storedToken) => {
   if (!token || !storedToken) {
     return false;
@@ -113,7 +129,7 @@ export const validateCsrfToken = (token, storedToken) => {
   return token === storedToken;
 };
 
-// 에러 메시지 정제
+// ===== 에러 처리 =====
 export const sanitizeErrorMessage = (error) => {
   const safeMessages = {
     'Network Error': '네트워크 오류가 발생했습니다. 다시 시도해주세요.',
@@ -126,7 +142,7 @@ export const sanitizeErrorMessage = (error) => {
   return safeMessages[error.message] || '오류가 발생했습니다. 다시 시도해주세요.';
 };
 
-// Content Security Policy 헤더 생성
+// ===== Content Security Policy =====
 export const generateCspHeader = () => {
   return {
     'Content-Security-Policy': [

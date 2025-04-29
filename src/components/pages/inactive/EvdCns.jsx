@@ -4,7 +4,7 @@ import QuillEditor from '@/components/admin/common/QuillEditor'
 import { Input, Radio, Space, Upload, Button, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import styled from 'styled-components'
-import { axiosInstance } from '@/stores/api'
+import { axiosInstance, API_ENDPOINTS } from '@/utils/api'
 
 const StyledTable = styled.table`
   width: 100%;
@@ -104,7 +104,7 @@ const EvdCns = () => {
       });
 
       // API 호출
-      const response = await axiosInstance.post('/api/inact/evd/save', submitData, {
+      const response = await axiosInstance.post(API_ENDPOINTS.INACTIVE.EVD_CNS, submitData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

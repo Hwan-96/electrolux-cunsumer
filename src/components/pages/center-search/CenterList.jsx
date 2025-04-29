@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import searchIco from '@/images/ico-sh1.png';
 import CenterInfo from '@/components/common/popup/CenterInfo';
 import Pagination from '@/components/common/Pagination';
-import apiService from '@/utils/api';
+import { axiosInstance } from '@/utils/api';
+
 const ITEMS_PER_PAGE = 5;
 
 const CenterList = ({ selectedRegion, selectedCity }) => {
@@ -31,9 +31,12 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
           params.city = selectedCity;
         }
         
-        // apiService를 통해 데이터 요청
-        const response = await apiService.getServiceCenters(params);
-        setCenters(response.data || []);
+        // axiosInstance를 통해 데이터 요청
+        const response = await axiosInstance.get('/service-centers', { params });
+        
+        // 응답 데이터가 배열인지 확인하고, 배열이 아니면 빈 배열로 설정
+        const centersData = Array.isArray(response.data) ? response.data : [];
+        setCenters(centersData);
         setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
         setError(null);
       } catch (err) {
@@ -49,9 +52,11 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
     fetchServiceCenters();
   }, [selectedRegion, selectedCity]);
 
-  const totalPages = Math.ceil(centers.length / ITEMS_PER_PAGE);
+  // centers가 배열인지 확인하고, 배열이 아니면 빈 배열로 설정
+  const safeCenters = Array.isArray(centers) ? centers : [];
+  const totalPages = Math.ceil(safeCenters.length / ITEMS_PER_PAGE);
 
-  const currentCenters = centers.slice(
+  const currentCenters = safeCenters.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -72,7 +77,7 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
   
   // 역순 번호 계산 함수
   const getReverseNumber = (index) => {
-    return centers.length - ((currentPage - 1) * ITEMS_PER_PAGE + index);
+    return safeCenters.length - ((currentPage - 1) * ITEMS_PER_PAGE + index);
   };
 
   return (
@@ -88,7 +93,7 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
           <div className="error-message">{error}</div>
         ) : (
           <>
-            <p className="total">총 {centers.length}개의 센터가 검색되었습니다.</p>
+            <p className="total">총 {safeCenters.length}개의 센터가 검색되었습니다.</p>
 
             <div id="m-result" className="m-only">
               <ul>
@@ -103,7 +108,7 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
                             e.preventDefault();
                             handleCenterClick(center);
                           }}>
-                            <img src={searchIco} alt="상세" style={{ width: '15px' }} />
+                            <img src='/images/ico-sh1.png' alt="상세" style={{ width: '15px' }} />
                           </a>
                         </dt>
                         <dd className="addr">{center.address || '주소 정보가 없습니다.'}</dd>
@@ -161,7 +166,7 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
                             e.preventDefault();
                             handleCenterClick(center);
                           }}>
-                            <img src={searchIco} alt="상세" />
+                            <img src='/images/ico-sh1.png' alt="상세" />
                           </a>
                         </td>
                       </tr>
@@ -176,7 +181,7 @@ const CenterList = ({ selectedRegion, selectedCity }) => {
             </div>
 
             {/* 페이지네이션 - 공통 컴포넌트 사용 */}
-            {centers.length > 0 && (
+            {safeCenters.length > 0 && (
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

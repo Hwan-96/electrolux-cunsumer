@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useIdleTimer } from 'react-idle-timer';
 import { setCookie, deleteCookie, getCookie } from '@/utils/cookie';
-import { axiosInstance } from '@/stores/api';
+import { axiosInstance } from '@/utils/api';
 
 // 자동 로그아웃 설정
 const AUTO_LOGOUT_TIME = 30 * 60 * 1000; // 30분

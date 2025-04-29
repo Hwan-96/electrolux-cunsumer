@@ -4,7 +4,6 @@ import PathNav from '@/components/common/PathNav';
 import SubTitleBox from '@/components/common/SubTitleBox';
 import Pagination from '@/components/common/Pagination';
 import SearchForm from '@/components/common/SearchForm';
-import fileIco from '@/images/ico-file.png';
 import useNoticeStore from '@/stores/noticeStore';
 
 const NoticeList = () => {
@@ -168,7 +167,7 @@ const NoticeList = () => {
                     </td>
                     <td>
                       {notice.hasAttachment && (
-                        <img src={fileIco} alt="첨부파일" />
+                        <img src='/images/ico-file.png' alt="첨부파일" />
                       )}
                     </td>
                     <td>{notice.createdAt}</td>

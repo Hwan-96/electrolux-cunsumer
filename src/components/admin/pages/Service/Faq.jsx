@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Search from '@/components/admin/common/Search';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 import { DataTable } from '@/components/admin/common/DataTable';
 import { getMockData, updateMockData, deleteMockData } from '@/components/admin/mock/MOCK_FAQ';
 import { faqSearch } from '@/components/admin/utils/search/faqSearch';

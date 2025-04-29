@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { regionData, getCitiesByRegion } from '@/utils/regionData';
+import { axiosInstance } from '@/utils/api';
 
 const FindCenter = () => {
   const navigate = useNavigate();
@@ -9,21 +9,40 @@ const FindCenter = () => {
   const [selectedRegion, setSelectedRegion] = useState('광역시/도');
   const [selectedCity, setSelectedCity] = useState('시군구');
 
+  // 지역 목록 가져오기
   useEffect(() => {
-    setRegions(regionData);
+    const fetchRegions = async () => {
+      try {
+        const response = await axiosInstance.get('/regions');
+        setRegions([
+          { value: '광역시/도', label: '광역시/도' },
+          ...response.data
+        ]);
+      } catch (err) {
+        console.error('지역 목록 조회 실패:', err);
+        setRegions([{ value: '광역시/도', label: '광역시/도' }]);
+      }
+    };
+    
+    fetchRegions();
     // 초기 시군구 데이터 설정
     setCities([{ value: '시군구', label: '시군구' }]);
   }, []);
 
-  const handleRegionChange = (e) => {
+  const handleRegionChange = async (e) => {
     const region = e.target.value;
     setSelectedRegion(region);
     setSelectedCity('시군구');
     
     // 새로운 시군구 데이터 가져오기
     if (region && region !== '광역시/도') {
-      const citiesForRegion = getCitiesByRegion(region);
-      setCities([{ value: '시군구', label: '시군구' }, ...citiesForRegion]);
+      try {
+        const response = await axiosInstance.get(`/regions/${region}/cities`);
+        setCities([{ value: '시군구', label: '시군구' }, ...response.data]);
+      } catch (err) {
+        console.error('시군구 목록 조회 실패:', err);
+        setCities([{ value: '시군구', label: '시군구' }]);
+      }
     } else {
       setCities([{ value: '시군구', label: '시군구' }]);
     }
@@ -53,8 +72,8 @@ const FindCenter = () => {
                   value={selectedRegion}
                   onChange={handleRegionChange}
                 >
-                  {regions.map((region) => (
-                    <option key={region.value} value={region.value}>
+                  {regions.map((region, index) => (
+                    <option key={`region-${region.value}-${index}`} value={region.value}>
                       {region.label}
                     </option>
                   ))}
@@ -66,8 +85,8 @@ const FindCenter = () => {
                   value={selectedCity}
                   onChange={handleCityChange}
                 >
-                  {cities.map((city) => (
-                    <option key={city.value} value={city.value}>
+                  {cities.map((city, index) => (
+                    <option key={`city-${city.value}-${index}`} value={city.value}>
                       {city.label}
                     </option>
                   ))}
@@ -90,4 +109,5 @@ const FindCenter = () => {
   );
 };
 
+export { FindCenter };
 export default FindCenter;

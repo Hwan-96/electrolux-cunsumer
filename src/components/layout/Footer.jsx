@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { logoImages } from '@/utils/data.js';
 
 const Footer = () => {
   const handleFamilySiteChange = (e) => {
@@ -15,7 +14,7 @@ const Footer = () => {
       <div className="inner">
         <div className="fmenu">
           <p className="flogo">
-            <img src={logoImages.footer} alt="Electrolux" />
+            <img src='/images/logo-footer.png' alt="Electrolux" />
           </p>
           <ul>
             <li><Link to="/terms">이용약관</Link></li>

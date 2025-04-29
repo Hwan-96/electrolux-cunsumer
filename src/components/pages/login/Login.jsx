@@ -3,7 +3,7 @@ import PathNav from '@/components/common/PathNav';
 import Loading from '@/components/common/Loading';
 import useAuthStore from '@/stores/authStore';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { sanitizeInput } from '@/utils/inputValidation';
+import { sanitizeInput } from '@/utils/security';
 
 const Login = () => {
   const navigate = useNavigate();
