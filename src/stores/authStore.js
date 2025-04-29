@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useIdleTimer } from 'react-idle-timer';
 import axios from 'axios';
-import { deleteCookie } from '@/utils/cookie';
+import { setCookie, deleteCookie, getCookie } from '@/utils/cookie';
 
 // 자동 로그아웃 설정
 const AUTO_LOGOUT_TIME = 30 * 60 * 1000; // 30분
@@ -30,6 +30,7 @@ export const useAuthStore = create(
       showLogoutPrompt: false,
       logoutTimer: null,
       promptTimer: null,
+      accessToken: null,
 
       // 로그인
       login: async (acnt_id, acnt_pw) => {
@@ -56,12 +57,11 @@ export const useAuthStore = create(
           }
 
           // 토큰 저장
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
+          // accessToken은 메모리에만 저장
+          set({ accessToken: data.accessToken });
           
-          // 사용자 정보 저장
-          localStorage.setItem('userId', acnt_id);
-          localStorage.setItem('userRoles', JSON.stringify(data.roles || []));
+          // refreshToken은 쿠키에 저장
+          setCookie('refreshToken', data.refreshToken, 7); // 7일 유효
           
           // axios 인스턴스의 헤더에 토큰 설정
           axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
@@ -104,25 +104,20 @@ export const useAuthStore = create(
         }
       },
 
-      
-
       // 로그아웃
       logout: () => {
         // 쿠키에서 토큰 삭제
-        deleteCookie('accessToken');
         deleteCookie('refreshToken');
         
-        // 로컬 스토리지에서 토큰 삭제
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userRoles');
+        // axios 인스턴스의 헤더에서 토큰 제거
+        delete axiosInstance.defaults.headers.Authorization;
         
         set({
           isLoggedIn: false,
           userInfo: null,
           lastActivity: null,
-          showLogoutPrompt: false
+          showLogoutPrompt: false,
+          accessToken: null
         });
         
         get().clearTimers();
@@ -131,7 +126,7 @@ export const useAuthStore = create(
       // 토큰 갱신
       refreshToken: async () => {
         try {
-          const refreshToken = localStorage.getItem('refreshToken');
+          const refreshToken = getCookie('refreshToken');
           if (!refreshToken) {
             throw new Error('리프레시 토큰이 없습니다.');
           }
@@ -143,11 +138,12 @@ export const useAuthStore = create(
             throw new Error('토큰 갱신에 실패했습니다.');
           }
 
-          // 새로운 액세스 토큰 저장
-          localStorage.setItem('accessToken', data.accessToken);
+          // 새로운 액세스 토큰 저장 (메모리에만)
+          set({ accessToken: data.accessToken });
           
+          // 새로운 리프레시 토큰이 있으면 쿠키에 저장
           if (data.refreshToken) {
-            localStorage.setItem('refreshToken', data.refreshToken);
+            setCookie('refreshToken', data.refreshToken, 7); // 7일 유효
           }
           
           // axios 인스턴스의 헤더에 새 토큰 설정
@@ -196,13 +192,57 @@ export const useAuthStore = create(
       extendSession: () => {
         set({ showLogoutPrompt: false });
         get().startAutoLogout();
+      },
+      
+      // 사용자 정보 업데이트
+      updateUserInfo: async (userUpdateData) => {
+        try {
+          const response = await axiosInstance.post('/api/updateUserInfo', userUpdateData);
+          
+          if (response.data && response.data.success) {
+            // 저장된 유저 정보 업데이트
+            set({ userInfo: { ...get().userInfo, ...userUpdateData } });
+            return { success: true, message: '사용자 정보가 성공적으로 업데이트되었습니다.' };
+          } else {
+            throw new Error(response.data?.message || '사용자 정보 업데이트 실패');
+          }
+        } catch (error) {
+          console.error('사용자 정보 업데이트 중 오류:', error);
+          return { 
+            success: false, 
+            message: error.response?.data?.message || '사용자 정보 업데이트 중 오류가 발생했습니다.' 
+          };
+        }
+      },
+
+      // 비밀번호 변경
+      changePassword: async (currentPassword, newPassword) => {
+        try {
+          const response = await axiosInstance.post('/api/changePassword', {
+            current_password: currentPassword,
+            new_password: newPassword
+          });
+          
+          if (response.data && response.data.success) {
+            return { success: true, message: '비밀번호가 성공적으로 변경되었습니다.' };
+          } else {
+            throw new Error(response.data?.message || '비밀번호 변경 실패');
+          }
+        } catch (error) {
+          console.error('비밀번호 변경 중 오류:', error);
+          return { 
+            success: false, 
+            message: error.response?.data?.message || '비밀번호 변경 중 오류가 발생했습니다.' 
+          };
+        }
       }
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
         isLoggedIn: state.isLoggedIn,
-        userInfo: state.userInfo
+        userInfo: state.userInfo,
+        accessToken: state.accessToken
       })
     }
   )

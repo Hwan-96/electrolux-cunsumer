@@ -5,7 +5,7 @@ import '@/css/layout.css'
 import '@/css/pop.css'
 import '@/css/style.css'
 
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import AdminHeader from '@/components/admin/layout/AdminHeader';
@@ -34,12 +34,36 @@ import PrivateRoute from '@/components/common/PrivateRoute';
 import AdminRoute from '@/components/common/AdminRoute';
 import JoinRoute from '@/components/common/JoinRoute';
 import UserInfo from '@/components/pages/mypage/UserInfo';
+import EvdCns from '@/components/pages/inactive/EvdCns';
+import Install from '@/components/pages/inactive/Install';
+import Survey from '@/components/pages/inactive/Survey';
+import UltraSrch from '@/components/pages/inactive/UltraSrch';
 import useAuthStore from './stores/authStore';
 import { IdleTimerProvider } from './stores/authStore';
 import LogoutPrompt from './components/common/LogoutPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AdminRoutes from '@/components/admin/routes/AdminRoutes';
 import Aside from '@/components/admin/layout/Aside';
+
+// 관리자 사용자 여부 확인 커스텀 훅
+const useIsAdmin = () => {
+  const { isLoggedIn, userInfo } = useAuthStore();
+  return isLoggedIn && userInfo?.type === 'admin';
+};
+
+// 일반 유저 경로 접근 체크 컴포넌트
+const UserRouteCheck = ({ children }) => {
+  const isAdmin = useIsAdmin();
+  const location = useLocation();
+  
+  // 관리자가 관리자 경로가 아닌 곳에 접근하려고 할 때 관리자 대시보드로 리다이렉트
+  if (isAdmin && !location.pathname.startsWith('/mng')) {
+    return <Navigate to="/mng" replace />;
+  }
+  
+  return children;
+};
+
 // 헤더와 푸터를 포함하는 레이아웃 컴포넌트
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -73,56 +97,150 @@ function App() {
         <BrowserRouter>
           <Layout>
             <Routes>
-              {/* 공개 페이지들 */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/service/warranty" element={<Warranty />} />
-              <Route path="/service/as_charge" element={<AsCharge />} />
-              <Route path="/service/free_as" element={<FreeAs />} />
-              <Route path="/center-search" element={<CenterSearch />} />
-              <Route path="/faq" element={<Faq />} />
-              <Route path="/qna" element={<Qna />} />
-              <Route path="/notice/*" element={<Notice />} />
-              <Route path="/down/prd_guide" element={<PrdGuide />} />
-              <Route path="/down/cleanup" element={<Cleanup />} />
-              <Route path="/down/prd_guide/:id" element={<PrdGuideDetail />} />
-              <Route path="/down/cleanup/:id" element={<CleanupDetail />} />
-              <Route path="/event/*" element={<Event />} />
+              {/* 공개 페이지들 - 권한 확인 적용 */}
+              <Route path="/" element={
+                <UserRouteCheck>
+                  <Home />
+                </UserRouteCheck>
+              } />
+              <Route path="/login" element={
+                <UserRouteCheck>
+                  <Login />
+                </UserRouteCheck>
+              } />
+              <Route path="/service/warranty" element={
+                <UserRouteCheck>
+                  <Warranty />
+                </UserRouteCheck>
+              } />
+              <Route path="/service/as_charge" element={
+                <UserRouteCheck>
+                  <AsCharge />
+                </UserRouteCheck>
+              } />
+              <Route path="/service/free_as" element={
+                <UserRouteCheck>
+                  <FreeAs />
+                </UserRouteCheck>
+              } />
+              <Route path="/center-search" element={
+                <UserRouteCheck>
+                  <CenterSearch />
+                </UserRouteCheck>
+              } />
+              <Route path="/faq" element={
+                <UserRouteCheck>
+                  <Faq />
+                </UserRouteCheck>
+              } />
+              <Route path="/qna" element={
+                <UserRouteCheck>
+                  <Qna />
+                </UserRouteCheck>
+              } />
+              <Route path="/notice/*" element={
+                <UserRouteCheck>
+                  <Notice />
+                </UserRouteCheck>
+              } />
+              <Route path="/down/prd_guide" element={
+                <UserRouteCheck>
+                  <PrdGuide />
+                </UserRouteCheck>
+              } />
+              <Route path="/down/cleanup" element={
+                <UserRouteCheck>
+                  <Cleanup />
+                </UserRouteCheck>
+              } />
+              <Route path="/down/prd_guide/:id" element={
+                <UserRouteCheck>
+                  <PrdGuideDetail />
+                </UserRouteCheck>
+              } />
+              <Route path="/down/cleanup/:id" element={
+                <UserRouteCheck>
+                  <CleanupDetail />
+                </UserRouteCheck>
+              } />
+              <Route path="/event/*" element={
+                <UserRouteCheck>
+                  <Event />
+                </UserRouteCheck>
+              } />
+
+              {/* 비활성화 페이지들 */}
+              <Route path="/inact/evd" element={
+                <UserRouteCheck>
+                  <EvdCns />
+                </UserRouteCheck>
+              } />
+
+              <Route path="/inact/ins" element={
+                <UserRouteCheck>
+                  <Install />
+                </UserRouteCheck>
+              } />
+
+              <Route path="/inact/srvy" element={
+                <UserRouteCheck>
+                  <Survey />
+                </UserRouteCheck>
+              } />
+
+              <Route path="/inact/ultra" element={
+                <UserRouteCheck>
+                  <UltraSrch />
+                </UserRouteCheck>
+              } />
+              
+              
 
               <Route path="/join/agreement" element={
-                <JoinRoute step="agreement">
-                  <Agreement />
-                </JoinRoute>
+                <UserRouteCheck>
+                  <JoinRoute step="agreement">
+                    <Agreement />
+                  </JoinRoute>
+                </UserRouteCheck>
               } />
               <Route path="/join/register" element={
-                <JoinRoute step="register">
-                  <Register />
-                </JoinRoute>
+                <UserRouteCheck>
+                  <JoinRoute step="register">
+                    <Register />
+                  </JoinRoute>
+                </UserRouteCheck>
               } />
               <Route path="/join/complete" element={
-                <JoinRoute step="complete">
-                  <Complete />
-                </JoinRoute>
+                <UserRouteCheck>
+                  <JoinRoute step="complete">
+                    <Complete />
+                  </JoinRoute>
+                </UserRouteCheck>
               } />
               
               {/* 보호된 페이지들 - 로그인 필요 */}
               <Route path="/qna/form" element={
-                <PrivateRoute>
-                  <QnaForm />
-                </PrivateRoute>
+                <UserRouteCheck>
+                  <PrivateRoute>
+                    <QnaForm />
+                  </PrivateRoute>
+                </UserRouteCheck>
               } />
               <Route path="/qna/:id" element={
-                <PrivateRoute>
-                  <QnaDetail />
-                </PrivateRoute>
+                <UserRouteCheck>
+                  <PrivateRoute>
+                    <QnaDetail />
+                  </PrivateRoute>
+                </UserRouteCheck>
               } />
 
               <Route path="/mem/cs" element={
-                <PrivateRoute>
-                  <UserInfo />
-                </PrivateRoute>
+                <UserRouteCheck>
+                  <PrivateRoute>
+                    <UserInfo />
+                  </PrivateRoute>
+                </UserRouteCheck>
               } />
-
               
               {/* 관리자 전용 페이지들 */}
               <Route path="/mng/*" element={
@@ -132,7 +250,11 @@ function App() {
               } />
               
               {/* 404 페이지 - 가장 마지막에 배치 */}
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={
+                <UserRouteCheck>
+                  <NotFound />
+                </UserRouteCheck>
+              } />
             </Routes>
             {showLogoutPrompt && (
               <LogoutPrompt

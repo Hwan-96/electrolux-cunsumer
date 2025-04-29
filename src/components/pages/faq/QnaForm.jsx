@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import hintIco from '@/images/serial_hint.png';
 import serialHint from '@/images/serialkch2.jpg';
 import useQnaStore from '@/stores/qnaStore';
+import useAuthStore from '@/stores/authStore';
 import { sanitizeInput, sanitizeHtmlContent } from '@/utils/inputValidation';
 
 const TextEditor = styled.div`
@@ -31,6 +32,7 @@ const EditorContent = styled.textarea`
 const QnaForm = () => {
   const navigate = useNavigate();
   const { createQna } = useQnaStore();
+  const { userInfo, isLoggedIn } = useAuthStore();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -48,8 +50,8 @@ const QnaForm = () => {
     cate_pname: '',
     cate_model: '',
     contents_qna: '',
-    files: [],
     title: '',
+    files: [],
     category: 'product'
   });
   
@@ -81,8 +83,6 @@ const QnaForm = () => {
   
   // 힌트 이미지 호버 상태 추가
   const [isHintVisible, setIsHintVisible] = useState(false);
-  
-  const [error, setError] = useState('');
   
   // Handle input changes
   const handleInputChange = (e) => {
@@ -142,14 +142,21 @@ const QnaForm = () => {
   // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+
+    // Prepare data for submission
+    const submissionData = {
+      ...formData,
+      phone: `${formData.uphone1}-${formData.uphone2}-${formData.uphone3}`,
+      email: `${formData.uemail1}@${formData.uemail2}`,
+      user_id: isLoggedIn ? userInfo.id : null // Include user ID if logged in
+    };
 
     try {
-      await createQna(formData);
+      await createQna(submissionData);
       navigate('/qna');
     } catch (error) {
       console.error('Q&A 작성 실패:', error);
-      setError('Q&A 작성에 실패했습니다. 다시 시도해주세요.');
+      alert('Q&A 작성에 실패했습니다. 다시 시도해주세요.');
     }
   };
   
@@ -206,6 +213,53 @@ const QnaForm = () => {
     });
   }, []);
   
+  // Initialize form data with user info
+  useEffect(() => {
+    if (userInfo) {
+      // 이름 설정
+      const name = userInfo.name || '';
+      
+      // 전화번호 파싱
+      let phone1 = '010';
+      let phone2 = '';
+      let phone3 = '';
+      
+      if (userInfo.tel_no) {
+        const phoneMatch = userInfo.tel_no.match(/^(\d{3})(\d{3,4})(\d{4})$/);
+        if (phoneMatch) {
+          [, phone1, phone2, phone3] = phoneMatch;
+        } else {
+          const phoneParts = userInfo.tel_no.split('-');
+          if (phoneParts.length === 3) {
+            [phone1, phone2, phone3] = phoneParts;
+          }
+        }
+      }
+      
+      // 이메일 파싱
+      let emailId = '';
+      let emailDomain = '';
+      
+      if (userInfo.mail_addr) {
+        const emailParts = userInfo.mail_addr.split('@');
+        if (emailParts.length === 2) {
+          emailId = emailParts[0];
+          emailDomain = emailParts[1];
+        }
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        uname: name,
+        uphone1: phone1,
+        uphone2: phone2,
+        uphone3: phone3,
+        uemail1: emailId,
+        uemail2: emailDomain
+      }));
+    }
+  }, [userInfo]);
+  
   // Handle on Enter for model search
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
@@ -237,7 +291,7 @@ const QnaForm = () => {
           </div>
 
           <form id="form_qna" className="qna-form" onSubmit={handleSubmit}>
-            {error && <div className="error-message">{error}</div>}
+            
             <table className="type1 write1 bdtn qna-write1">
               <caption>1:1상담 작성</caption>
               <tbody>
@@ -253,6 +307,7 @@ const QnaForm = () => {
                       title="작성자" 
                       value={formData.uname}
                       onChange={handleInputChange}
+                      readOnly={isLoggedIn}
                     />
                   </td>
                 </tr>
@@ -268,6 +323,7 @@ const QnaForm = () => {
                           title="연락처"
                           value={formData.uphone1}
                           onChange={handleInputChange}
+                          disabled={isLoggedIn}
                         >
                           <option value="010">010</option>
                           <option value="011">011</option>
@@ -286,6 +342,7 @@ const QnaForm = () => {
                           title="연락처" 
                           value={formData.uphone2}
                           onChange={handleInputChange}
+                          readOnly={isLoggedIn}
                         />
                       </li>
                       <li className="ip3">
@@ -298,6 +355,7 @@ const QnaForm = () => {
                           title="연락처" 
                           value={formData.uphone3}
                           onChange={handleInputChange}
+                          readOnly={isLoggedIn}
                         />
                       </li>
                     </ul>
@@ -316,6 +374,7 @@ const QnaForm = () => {
                           className="ip01" 
                           value={formData.uemail1}
                           onChange={handleInputChange}
+                          readOnly={isLoggedIn}
                         />
                       </li>
                       <li>@</li>
@@ -327,6 +386,7 @@ const QnaForm = () => {
                           className="ip01" 
                           value={formData.uemail2}
                           onChange={handleInputChange}
+                          readOnly={isLoggedIn}
                         />
                       </li>
                       <li className="ip3">
@@ -336,6 +396,7 @@ const QnaForm = () => {
                           className="sel01"
                           onChange={handleEmailDomainChange}
                           value={formData.uemail2}
+                          disabled={isLoggedIn}
                         >
                           {emailDomains.map((domain, index) => (
                             <option key={index} value={domain.value}>{domain.label}</option>
@@ -493,6 +554,23 @@ const QnaForm = () => {
                         </span>
                       </li>
                     </ul>
+                  </td>
+                </tr>
+
+                <tr>
+                  <th><label htmlFor="qna_title" className="lb1">제목</label></th>
+                  <td>
+                    <input 
+                      type="text" 
+                      name="title" 
+                      id="qna_title" 
+                      className="ip01" 
+                      style={{ width: '100%' }} 
+                      title="제목" 
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      placeholder="문의 제목을 입력해주세요."
+                    />
                   </td>
                 </tr>
 
