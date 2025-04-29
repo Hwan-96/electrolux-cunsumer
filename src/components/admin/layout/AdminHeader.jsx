@@ -302,7 +302,7 @@ const AdminHeader = () => {
               trigger={['click']}
               open={dropdownOpen}
               onOpenChange={(flag) => setDropdownOpen(flag)}
-              placement="bottomCenter"
+              placement="bottom"
               getPopupContainer={(triggerNode) => triggerNode.parentNode}
               overlayStyle={{ position: 'fixed' }}
             >

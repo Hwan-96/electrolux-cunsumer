@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import SubTitleBox from '@/components/common/SubTitleBox'
 import QuillEditor from '@/components/admin/common/QuillEditor'
-import { Input, Radio, Space, Upload, Button } from 'antd'
+import { Input, Radio, Space, Upload, Button, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import styled from 'styled-components'
+import { axiosInstance } from '@/stores/api'
 
 const StyledTable = styled.table`
   width: 100%;
@@ -35,13 +36,16 @@ const StyledNotice = styled.p`
 
 const EvdCns = () => {
   const [formData, setFormData] = useState({
-    acnt_name: '',
-    acnt_phone1: '',
-    acnt_phone2: '',
-    acnt_phone3: '',
-    contents: '',
+    cstm_nm: '',
+    cstm_tel_no1: '',
+    cstm_tel_no2: '',
+    cstm_tel_no3: '',
+    qstn_cntnt: '',
     agree: 'Y'
   });
+
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -49,6 +53,99 @@ const EvdCns = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  // 파일 업로드 핸들러
+  const handleFileChange = (info) => {
+    const fileList = info.fileList.slice(-3); // 최대 3개 파일만 유지
+    setFiles(fileList);
+  };
+
+  // 폼 제출 핸들러
+  const handleSubmit = async () => {
+    try {
+      if (!formData.cstm_nm || !formData.cstm_tel_no1 || !formData.cstm_tel_no2 || !formData.cstm_tel_no3) {
+        message.error('작성자와 전화번호를 모두 입력해주세요.');
+        return;
+      }
+
+      // HTML 태그를 제거하고 실제 텍스트 내용만 확인
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = formData.qstn_cntnt;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+      
+      if (!textContent.trim()) {
+        message.error('내용을 입력해주세요.');
+        return;
+      }
+
+      if (formData.agree !== 'Y') {
+        message.error('개인정보 수집 및 이용에 동의해주세요.');
+        return;
+      }
+
+      setLoading(true);
+
+      // FormData 생성
+      const submitData = new FormData();
+      
+      // 기본 데이터 추가
+      submitData.append('cstm_nm', formData.cstm_nm);
+      submitData.append('qstn_cntnt', formData.qstn_cntnt);
+      // 전화번호 통합
+      const combinedPhoneNumber = `${formData.cstm_tel_no1}${formData.cstm_tel_no2}${formData.cstm_tel_no3}`;
+      submitData.append('cstm_tel_no', combinedPhoneNumber);
+
+      // 파일 추가
+      files.forEach((file) => {
+        if (file.originFileObj) {
+          submitData.append('file', file.originFileObj);
+        }
+      });
+
+      // API 호출
+      const response = await axiosInstance.post('/api/inact/evd/save', submitData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        message.success('상담증빙자료가 성공적으로 등록되었습니다.');
+        // 폼 초기화
+        setFormData({
+          cstm_nm: '',
+          cstm_tel_no1: '',
+          cstm_tel_no2: '',
+          cstm_tel_no3: '',
+          qstn_cntnt: '',
+          agree: 'Y'
+        });
+        setFiles([]);
+      } else {
+        throw new Error(response.data.message || '등록에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('등록 중 오류:', error);
+      message.error(error.response?.data?.message || '등록 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 취소 핸들러
+  const handleCancel = () => {
+    if (window.confirm('작성 중인 내용이 모두 삭제됩니다. 취소하시겠습니까?')) {
+      setFormData({
+        cstm_nm: '',
+        cstm_tel_no1: '',
+        cstm_tel_no2: '',
+        cstm_tel_no3: '',
+        qstn_cntnt: '',
+        agree: 'Y'
+      });
+      setFiles([]);
+    }
   };
 
   return (
@@ -74,16 +171,16 @@ const EvdCns = () => {
               <tbody>
                 <tr>
                   <th>
-                    <StyledLabel htmlFor="acnt_name">
+                    <StyledLabel htmlFor="cstm_nm">
                       작성자
                     </StyledLabel>
                   </th>
                   <td>
                     <Input
                       type="text"
-                      name="acnt_name"
-                      id="acnt_name"
-                      value={formData.acnt_name}
+                      name="cstm_nm"
+                      id="cstm_nm"
+                      value={formData.cstm_nm}
                       onChange={handleInputChange}
                     />
                   </td>
@@ -91,7 +188,7 @@ const EvdCns = () => {
 
                 <tr>
                   <th>
-                    <StyledLabel htmlFor="acnt_phone1">
+                    <StyledLabel htmlFor="cstm_tel_no1">
                       전화번호
                     </StyledLabel>
                   </th>
@@ -99,27 +196,27 @@ const EvdCns = () => {
                     <Space>
                       <Input
                         type="tel"
-                        name="acnt_phone1"
-                        id="acnt_phone1"
-                        value={formData.acnt_phone1}
+                        name="cstm_tel_no1"
+                        id="cstm_tel_no1"
+                        value={formData.cstm_tel_no1}
                         onChange={handleInputChange}
                         maxLength={3}
                       />
                       -
                       <Input
                         type="tel"
-                        name="acnt_phone2"
-                        id="acnt_phone2"
-                        value={formData.acnt_phone2}
+                        name="cstm_tel_no2"
+                        id="cstm_tel_no2"
+                        value={formData.cstm_tel_no2}
                         onChange={handleInputChange}
                         maxLength={4}
                       />
                       -
                       <Input
                         type="tel"
-                        name="acnt_phone3"
-                        id="acnt_phone3"
-                        value={formData.acnt_phone3}
+                        name="cstm_tel_no3"
+                        id="cstm_tel_no3"
+                        value={formData.cstm_tel_no3}
                         onChange={handleInputChange}
                         maxLength={4}
                       />
@@ -132,16 +229,15 @@ const EvdCns = () => {
 
                 <tr>
                   <th>
-                    <StyledLabel htmlFor="contents">
+                    <StyledLabel htmlFor="qstn_cntnt">
                       내용
                     </StyledLabel>
                   </th>
                   <td>
                     <QuillEditor
-                      name="contents"
-                      id="contents"
-                      value={formData.contents}
-                      onChange={(value) => setFormData(prev => ({ ...prev, contents: value }))}
+                      name="qstn_cntnt"
+                      value={formData.qstn_cntnt}
+                      onChange={(value) => setFormData(prev => ({ ...prev, qstn_cntnt: value }))}
                     />
                   </td>
                 </tr>
@@ -159,6 +255,8 @@ const EvdCns = () => {
                         id="upload_file"
                         maxCount={3}
                         beforeUpload={() => false}
+                        onChange={handleFileChange}
+                        fileList={files}
                       >
                         <Button icon={<PlusOutlined />}>파일 선택</Button>
                       </Upload>
@@ -190,8 +288,23 @@ const EvdCns = () => {
             </div>
 
             <div className="btn-area1 ta-btm">
-              <button type="button" className="hgbtn blue02">등록</button>
-              <button type="button" className="hgbtn grey01" style={{marginLeft: '5px'}}>취소</button>
+              <button 
+                type="button" 
+                className="hgbtn blue02" 
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? '등록 중...' : '등록'}
+              </button>
+              <button 
+                type="button" 
+                className="hgbtn grey01" 
+                style={{marginLeft: '5px'}}
+                onClick={handleCancel}
+                disabled={loading}
+              >
+                취소
+              </button>
             </div>
           </form>
         </article>
