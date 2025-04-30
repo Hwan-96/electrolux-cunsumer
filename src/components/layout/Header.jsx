@@ -180,7 +180,7 @@ const Header = () => {
             </li>
             <li><Link to="/ntc" onClick={handleLinkClick}>공지사항</Link></li>
             <li>
-              <Link to="/evnt" onClick={handleLinkClick}>이벤트</Link>
+              <Link to="/evnt/ongoing" onClick={handleLinkClick}>이벤트</Link>
             </li>
 
             {/* pc만 노출 */}

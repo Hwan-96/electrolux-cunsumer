@@ -30,7 +30,9 @@ import PrdGuide from '@/components/pages/down/PrdGuide';
 import Cleanup from '@/components/pages/down/Cleanup';
 import PrdGuideDetail from '@/components/pages/down/PrdGuideDetail';
 import CleanupDetail from '@/components/pages/down/CleanupDetail';
-import Event from '@/components/pages/event/Event';
+import OngoingEvent from '@/components/pages/event/OngoingEvent';
+import EndedEvent from '@/components/pages/event/EndedEvent';
+import WinnerEvent from '@/components/pages/event/WinnerEvent';
 import NotFound from '@/components/pages/NotFound';
 import PrivateRoute from '@/components/common/PrivateRoute';
 import AdminRoute from '@/components/common/AdminRoute';
@@ -179,11 +181,22 @@ function App() {
                   <CleanupDetail />
                 </UserRouteCheck>
               } />
-              <Route path="/evnt/*" element={
+              <Route path="/evnt/ongoing" element={
                 <UserRouteCheck>
-                  <Event />
+                  <OngoingEvent />
                 </UserRouteCheck>
               } />
+              <Route path="/evnt/end" element={
+                <UserRouteCheck>
+                  <EndedEvent />
+                </UserRouteCheck>
+              } />
+              <Route path="/evnt/winner" element={
+                <UserRouteCheck>
+                  <WinnerEvent />
+                </UserRouteCheck>
+              } />
+              
 
               {/* 비활성화 페이지들 */}
               <Route path="/consulting" element={
@@ -268,7 +281,7 @@ function App() {
                   <Privacy />
                 </UserRouteCheck>
               } />
-              
+
               {/* 관리자 전용 페이지들 */}
               <Route path="/mng/*" element={
                 <AdminRoute>
