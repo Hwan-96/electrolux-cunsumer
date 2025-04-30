@@ -12,6 +12,8 @@ import AdminHeader from '@/components/admin/layout/AdminHeader';
 import AdminFooter from '@/components/admin/layout/AdminFooter';
 import Home from '@/components/pages/Home';
 import Login from '@/components/pages/login/Login';
+import FindID from '@/components/pages/login/FindID';
+import FindPW from '@/components/pages/login/FindPW';
 import Agreement from '@/components/pages/join/Agreement';
 import Register from '@/components/pages/join/Register';
 import Complete from '@/components/pages/join/Complete';
@@ -108,6 +110,19 @@ function App() {
                   <Login />
                 </UserRouteCheck>
               } />
+
+              <Route path="/find/id" element={
+                <UserRouteCheck>
+                  <FindID />
+                </UserRouteCheck>
+              } />
+
+              <Route path="/find/pw" element={
+                <UserRouteCheck>
+                  <FindPW />
+                </UserRouteCheck>
+              } />
+
               <Route path="/svc/wrnt" element={
                 <UserRouteCheck>
                   <Warranty />

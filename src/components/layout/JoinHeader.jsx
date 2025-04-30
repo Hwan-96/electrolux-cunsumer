@@ -84,8 +84,8 @@ const JoinHeader = () => {
             </li>
             <li>
               <div></div>
-              <span onClick={() => window.location.href = '/find-id'}>아이디</span> /
-              <span onClick={() => window.location.href = '/find-password'}>비밀번호</span> 찾기
+              <span onClick={() => window.location.href = '/find/id'}>아이디</span> /
+              <span onClick={() => window.location.href = '/find/pw'}>비밀번호</span> 찾기
             </li>
           </LeftMenu>
           <RightMenu className="right_menu pc">

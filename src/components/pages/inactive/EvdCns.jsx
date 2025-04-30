@@ -5,6 +5,7 @@ import { Input, Radio, Space, Upload, Button, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import styled from 'styled-components'
 import { axiosInstance, API_ENDPOINTS } from '@/utils/api'
+import InputNum from '@/components/common/InputNum'
 
 const StyledTable = styled.table`
   width: 100%;
@@ -39,7 +40,7 @@ const EvdCns = () => {
     cstm_nm: '',
     cstm_tel_no1: '',
     cstm_tel_no2: '',
-    cstm_tel_no3: '',
+    cstm_tel_no3 : '',
     qstn_cntnt: '',
     agree: 'Y'
   });
@@ -194,7 +195,7 @@ const EvdCns = () => {
                   </th>
                   <td>
                     <Space>
-                      <Input
+                      <InputNum
                         type="tel"
                         name="cstm_tel_no1"
                         id="cstm_tel_no1"
@@ -203,7 +204,7 @@ const EvdCns = () => {
                         maxLength={3}
                       />
                       -
-                      <Input
+                      <InputNum
                         type="tel"
                         name="cstm_tel_no2"
                         id="cstm_tel_no2"
@@ -212,7 +213,7 @@ const EvdCns = () => {
                         maxLength={4}
                       />
                       -
-                      <Input
+                      <InputNum
                         type="tel"
                         name="cstm_tel_no3"
                         id="cstm_tel_no3"

@@ -3,11 +3,11 @@ import { getCsrfToken, generateCsrfToken, setCsrfToken } from './security';
 import { useAuthStore } from '@/stores/authStore';
 import { getCookie } from './cookie';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // axios 인스턴스 생성
 export const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  // baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json; charset=utf-8'

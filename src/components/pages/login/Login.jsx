@@ -127,12 +127,12 @@ const Login = () => {
                       </a>
                     </li>
                     <li>
-                      <a href="" rel="noopener noreferrer" onClick={() => navigate('/find-id')}>
+                      <a href="" rel="noopener noreferrer" onClick={() => navigate('/find/id')}>
                         아이디찾기
                       </a>
                     </li>
                     <li>
-                      <a href="" rel="noopener noreferrer" onClick={() => navigate('/find-password')}>
+                      <a href="" rel="noopener noreferrer" onClick={() => navigate('/find/pw')}>
                         비밀번호 찾기
                       </a>
                     </li>
