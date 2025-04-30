@@ -40,7 +40,7 @@ const NoticeDetail = () => {
   
   // 목록으로 돌아가기
   const handleBackToList = () => {
-    navigate('/notice');
+    navigate('/ntc');
   };
 
   if (loading) {

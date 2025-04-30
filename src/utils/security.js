@@ -117,8 +117,18 @@ export const sanitizeObject = (obj) => {
 };
 
 // ===== CSRF 보호 =====
+export const getCsrfToken = () => {
+  const token = document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='));
+  return token ? token.split('=')[1] : null;
+};
+
+export const setCsrfToken = (token) => {
+  document.cookie = `XSRF-TOKEN=${token}; path=/; SameSite=Strict; Secure`;
+};
+
 export const generateCsrfToken = () => {
   const token = crypto.randomUUID();
+  setCsrfToken(token);
   return token;
 };
 

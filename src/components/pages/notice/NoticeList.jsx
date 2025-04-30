@@ -104,7 +104,7 @@ const NoticeList = () => {
 
   // 공지사항 상세 페이지로 이동
   const handleNoticeClick = (id) => {
-    navigate(`/notice/${id}`);
+    navigate(`/ntc/${id}`);
   };
 
   return (

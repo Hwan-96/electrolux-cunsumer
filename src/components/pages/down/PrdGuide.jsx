@@ -173,7 +173,7 @@ const PrdGuide = () => {
 
   // 항목 클릭 처리 - 상세 페이지로 이동
   const handleProductClick = (productId) => {
-    navigate(`/down/prd_guide/${productId}`);
+    navigate(`/dwn/manual/${productId}`);
   };
 
   return (
@@ -193,8 +193,8 @@ const PrdGuide = () => {
           {/* 탭 메뉴 */}
           <div className="link-tab mb0">
             <ul>
-              <li className="on"><Link to="/down/prd_guide">제품 사용설명서</Link></li>
-              <li><Link to="/down/cleanup">청소기 청소요령</Link></li>
+              <li className="on"><Link to="/dwn/manual">제품 사용설명서</Link></li>
+              <li><Link to="/dwn/cleanup">청소기 청소요령</Link></li>
             </ul>
           </div>
 

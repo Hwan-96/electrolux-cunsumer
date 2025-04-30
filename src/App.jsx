@@ -108,22 +108,22 @@ function App() {
                   <Login />
                 </UserRouteCheck>
               } />
-              <Route path="/service/warranty" element={
+              <Route path="/svc/wrnt" element={
                 <UserRouteCheck>
                   <Warranty />
                 </UserRouteCheck>
               } />
-              <Route path="/service/as_charge" element={
+              <Route path="/svc/asChr" element={
                 <UserRouteCheck>
                   <AsCharge />
                 </UserRouteCheck>
               } />
-              <Route path="/service/free_as" element={
+              <Route path="/svc/as" element={
                 <UserRouteCheck>
                   <FreeAs />
                 </UserRouteCheck>
               } />
-              <Route path="/center-search" element={
+              <Route path="/cntLst" element={
                 <UserRouteCheck>
                   <CenterSearch />
                 </UserRouteCheck>
@@ -138,57 +138,57 @@ function App() {
                   <Qna />
                 </UserRouteCheck>
               } />
-              <Route path="/notice/*" element={
+              <Route path="/ntc/*" element={
                 <UserRouteCheck>
                   <Notice />
                 </UserRouteCheck>
               } />
-              <Route path="/down/prd_guide" element={
+              <Route path="/dwn/manual" element={
                 <UserRouteCheck>
                   <PrdGuide />
                 </UserRouteCheck>
               } />
-              <Route path="/down/cleanup" element={
+              <Route path="/dwn/cleanup" element={
                 <UserRouteCheck>
                   <Cleanup />
                 </UserRouteCheck>
               } />
-              <Route path="/down/prd_guide/:id" element={
+              <Route path="/dwn/manual/:id" element={
                 <UserRouteCheck>
                   <PrdGuideDetail />
                 </UserRouteCheck>
               } />
-              <Route path="/down/cleanup/:id" element={
+              <Route path="/dwn/cleanup/:id" element={
                 <UserRouteCheck>
                   <CleanupDetail />
                 </UserRouteCheck>
               } />
-              <Route path="/event/*" element={
+              <Route path="/evnt/*" element={
                 <UserRouteCheck>
                   <Event />
                 </UserRouteCheck>
               } />
 
               {/* 비활성화 페이지들 */}
-              <Route path="/inact/evd" element={
+              <Route path="/consulting" element={
                 <UserRouteCheck>
                   <EvdCns />
                 </UserRouteCheck>
               } />
 
-              <Route path="/inact/ins" element={
+              <Route path="/install" element={
                 <UserRouteCheck>
                   <Install />
                 </UserRouteCheck>
               } />
 
-              <Route path="/inact/srvy" element={
+              <Route path="/survey/:id" element={
                 <UserRouteCheck>
                   <Survey />
                 </UserRouteCheck>
               } />
 
-              <Route path="/inact/ultra" element={
+              <Route path="/ultra" element={
                 <UserRouteCheck>
                   <UltraSrch />
                 </UserRouteCheck>

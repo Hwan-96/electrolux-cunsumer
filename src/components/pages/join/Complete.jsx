@@ -44,7 +44,7 @@ const Complete = () => {
               <div className="txt">일렉트로룩스<br />회원가입을 축하드립니다!</div>
               <img src="../../../join/img_end.jpg" alt="회원가입 완료" />
               <div className="btn">
-                <ul onClick={() => navigate('/notice')}>
+                <ul onClick={() => navigate('/ntc')}>
                   <li className="top">캠페인 사이트로 이동</li>
                   <li>캠페인 사이트에서는 일렉트로룩스의<br />다양한 제품과 이벤트를 확인하실 수 있습니다.</li>
                 </ul>

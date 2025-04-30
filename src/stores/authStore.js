@@ -9,50 +9,6 @@ const AUTO_LOGOUT_PROMPT_TIME = 5 * 60 * 1000; // 5분
 // const AUTO_LOGOUT_TIME = 10 * 1000; // 10초
 // const AUTO_LOGOUT_PROMPT_TIME = 5 * 1000; // 5초
 
-// 응답 인터셉터 설정
-axiosInstance.interceptors.response.use(
-  response => response,
-  async error => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        // refreshToken 가져오기
-        const refreshToken = getCookie('refreshToken');
-        if (!refreshToken) {
-          throw new Error('리프레시 토큰이 없습니다.');
-        }
-
-        // 토큰 갱신 요청
-        const response = await axiosInstance.post('/api/refresh', { refreshToken });
-        const { accessToken } = response.data;
-
-        if (!accessToken) {
-          throw new Error('토큰 갱신에 실패했습니다.');
-        }
-
-        // 새로운 액세스 토큰 저장
-        useAuthStore.getState().set({ accessToken });
-        
-        // axios 인스턴스의 헤더에 새 토큰 설정
-        axiosInstance.defaults.headers.Authorization = `Bearer ${accessToken}`;
-        
-        // 원래 요청의 헤더에 새 토큰 설정
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        console.error('토큰 갱신 중 오류:', refreshError);
-        useAuthStore.getState().logout();
-        return Promise.reject(refreshError);
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
-
 export const useAuthStore = create((set, get) => ({
   isLoggedIn: false,
   userInfo: null,

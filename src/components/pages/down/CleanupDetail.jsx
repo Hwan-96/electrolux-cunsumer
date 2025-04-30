@@ -71,7 +71,7 @@ const CleanupDetail = () => {
             </div>
             <div className="actions">
               <button onClick={handleDownload}>다운로드</button>
-              <button onClick={() => navigate('/down/cleanup')}>목록으로</button>
+              <button onClick={() => navigate('/dwn/cleanup')}>목록으로</button>
             </div>
           </div>
         </article>

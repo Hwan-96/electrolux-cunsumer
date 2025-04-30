@@ -115,15 +115,15 @@ const Header = () => {
               onMouseLeave={handleMouseLeave}
               className={activeSubmenu === 'service' ? 'active dep1-2' : ''}
             >
-              <Link to="/service/warranty">서비스정책 안내</Link>
+              <Link to="/svc/wrnt">서비스정책 안내</Link>
               <ul className="dep2">
-                <li><Link to="/service/warranty">제품 보증 기간</Link></li>
-                <li><Link to="/service/free_as">유ㆍ무상 기준</Link></li>
-                <li><Link to="/service/as_charge">수리 요금 구성</Link></li>
+                <li><Link to="/svc/wrnt">제품 보증 기간</Link></li>
+                <li><Link to="/svc/as">유ㆍ무상 기준</Link></li>
+                <li><Link to="/svc/asChr">수리 요금 구성</Link></li>
               </ul>
             </li>
             <li>
-              <Link to="/center-search">서비스센터 찾기</Link>
+              <Link to="/cntLst">서비스센터 찾기</Link>
             </li>
             <li 
               onMouseEnter={() => handleMouseEnter('customer')}
@@ -141,13 +141,13 @@ const Header = () => {
               onMouseLeave={handleMouseLeave}
               className={activeSubmenu === 'download' ? 'active dep1-5' : ''}
             >
-              <Link to="/down/prd_guide">다운로드</Link>
+              <Link to="/dwn/manual">다운로드</Link>
               <ul className="dep2">
-                <li><Link to="/down/prd_guide">제품 사용 설명서</Link></li>
-                <li><Link to="/down/cleanup">청소기 관리 방법</Link></li>
+                <li><Link to="/dwn/manual">제품 사용 설명서</Link></li>
+                <li><Link to="/dwn/cleanup">청소기 관리 방법</Link></li>
               </ul>
             </li>
-            <li><Link to="/notice">공지사항</Link></li>
+            <li><Link to="/ntc">공지사항</Link></li>
             <li>
               <Link to="/event">이벤트</Link>
             </li>
@@ -197,7 +197,7 @@ const Header = () => {
 
       {/* hd-search-box */}
       <div className={`hd-search-box ${isSearchOpen ? 'open' : ''}`}>
-        <form method="post" name="form_search_top" id="form_search_top" action="/down/prd_guide">
+        <form method="post" name="form_search_top" id="form_search_top" action="/dwn/manual">
           <div className="sh-box">
             <label htmlFor="search_top" className="hid">모델명을 검색해주세요.</label>
             <input 

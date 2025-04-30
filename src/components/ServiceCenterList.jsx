@@ -14,6 +14,7 @@ const ServiceCenterList = () => {
   // 지역 목록 데이터 가져오기
   useEffect(() => {
     const fetchRegions = async () => {
+      
       try {
         const response = await axiosInstance.get('/regions');
         setRegions(response.data || []);

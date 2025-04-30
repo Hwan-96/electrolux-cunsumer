@@ -55,7 +55,7 @@ const FindCenter = () => {
   const handleSearch = () => {
     if (selectedRegion !== '광역시/도' && selectedCity !== '시군구') {
       // 서비스 센터 검색 결과 페이지로 이동
-      navigate(`/center-search?region=${selectedRegion}&city=${selectedCity}`);
+      navigate(`/cntLst?region=${selectedRegion}&city=${selectedCity}`);
     }
   };
 

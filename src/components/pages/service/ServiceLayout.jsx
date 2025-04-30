@@ -21,13 +21,13 @@ const ServiceLayout = ({ children, currentPage, activeTab, title }) => {
           <div className="link-tab mb0 sevice1-tab">
             <ul>
               <li className={activeTab === 'warranty' ? 'on' : ''}>
-                <Link to="/service/warranty">제품의 보증기간</Link>
+                <Link to="/svc/wrnt">제품의 보증기간</Link>
               </li>
               <li className={activeTab === 'free_as' ? 'on' : ''}>
-                <Link to="/service/free_as">유ㆍ무상 기준</Link>
+                <Link to="/svc/as">유ㆍ무상 기준</Link>
               </li>
               <li className={activeTab === 'as_charge' ? 'on' : ''}>
-                <Link to="/service/as_charge">수리요금 구성</Link>
+                <Link to="/svc/asChr">수리요금 구성</Link>
               </li>
             </ul>
           </div>

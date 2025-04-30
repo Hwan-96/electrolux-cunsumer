@@ -92,10 +92,10 @@ const JoinHeader = () => {
             <li className="off" onClick={() => window.location.href = 'https://www.electrolux.co.kr/'}>
               <div></div>일렉트로룩스
             </li>
-            <li className="off" onClick={() => navigate('/notice')}>
+            <li className="off" onClick={() => navigate('/ntc')}>
               <div></div>고객센터
             </li>
-            <li className="off" onClick={() => navigate('/notice')}>
+            <li className="off" onClick={() => navigate('/ntc')}>
               <div></div>캠페인
             </li>
           </RightMenu>
