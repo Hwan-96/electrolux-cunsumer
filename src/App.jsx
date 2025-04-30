@@ -46,7 +46,8 @@ import LogoutPrompt from './components/common/LogoutPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AdminRoutes from '@/components/admin/routes/AdminRoutes';
 import Aside from '@/components/admin/layout/Aside';
-
+import Terms from '@/components/pages/terms/Terms';
+import Privacy from '@/components/pages/terms/Privacy';
 // 관리자 사용자 여부 확인 커스텀 훅
 const useIsAdmin = () => {
   const { isLoggedIn, userInfo } = useAuthStore();
@@ -254,6 +255,17 @@ function App() {
                   <PrivateRoute>
                     <UserInfo />
                   </PrivateRoute>
+                </UserRouteCheck>
+              } />
+
+              <Route path="/terms" element={
+                <UserRouteCheck>
+                  <Terms />
+                </UserRouteCheck>
+              } />
+              <Route path="/privacy" element={
+                <UserRouteCheck>
+                  <Privacy />
                 </UserRouteCheck>
               } />
               

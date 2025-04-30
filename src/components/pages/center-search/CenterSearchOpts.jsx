@@ -31,8 +31,8 @@ const CenterSearchOpts = ({
     const fetchRegions = async () => {
       try {
         const response = await axiosInstance.get('/regions');
-        setRegions([
-          { value: '', label: '광역시/도' },
+    setRegions([
+      { value: '', label: '광역시/도' },
           ...response.data
         ]);
       } catch (err) {
@@ -47,22 +47,22 @@ const CenterSearchOpts = ({
   // 선택된 지역에 따라 시군구 데이터 업데이트
   useEffect(() => {
     const fetchCities = async () => {
-      setLoading(true);
-      if (selectedRegion) {
+    setLoading(true);
+    if (selectedRegion) {
         try {
           const response = await axiosInstance.get(`/regions/${selectedRegion}/cities`);
-          setCities([
-            { value: '', label: '시군구' },
+      setCities([
+        { value: '', label: '시군구' },
             ...response.data
-          ]);
+      ]);
         } catch (err) {
           console.error('시군구 목록 조회 실패:', err);
           setCities([{ value: '', label: '시군구' }]);
         }
-      } else {
-        setCities([{ value: '', label: '시군구' }]);
-      }
-      setLoading(false);
+    } else {
+      setCities([{ value: '', label: '시군구' }]);
+    }
+    setLoading(false);
     };
     
     fetchCities();

@@ -149,7 +149,7 @@ const Header = () => {
             </li>
             <li><Link to="/ntc">공지사항</Link></li>
             <li>
-              <Link to="/event">이벤트</Link>
+              <Link to="/evnt">이벤트</Link>
             </li>
 
             {/* pc만 노출 */}

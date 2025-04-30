@@ -77,6 +77,10 @@ const InfoSection = styled.div`
   padding: 30px;
   border: 1px solid #e8e8e8;
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
   .top_tit {
     font-size: 16px;
@@ -113,6 +117,7 @@ const InfoSection = styled.div`
     cursor: pointer;
     text-align: center;
     margin-top: 20px;
+    width: 100%;
     &:hover {
       background-color: #192452;
     }
@@ -149,6 +154,14 @@ const FindID = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleEmailDomainChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      selectEmailDomain: value,
+      emailDomain: value
     }));
   };
 
@@ -196,33 +209,24 @@ const FindID = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        maxLength={10}
                       />
                     </dt>
                   </li>
                   <li>
                     <dt>휴대폰</dt>
                     <dt>
-                      <Select
+                      <InputNum
                         name="hp1"
                         value={formData.hp1}
-                        onChange={(value) => setFormData(prev => ({ ...prev, hp1: value }))}
-                        style={{ width: 100 }}
-                      >
-                        <Select.Option value="010">010</Select.Option>
-                        <Select.Option value="011">011</Select.Option>
-                        <Select.Option value="016">016</Select.Option>
-                        <Select.Option value="017">017</Select.Option>
-                        <Select.Option value="018">018</Select.Option>
-                        <Select.Option value="019">019</Select.Option>
-                      </Select>
+                        onChange={handleInputChange}
+                        maxLength={3}
+                      />
                       -
                       <InputNum
                         name="hp2"
                         value={formData.hp2}
                         onChange={handleInputChange}
                         maxLength={4}
-                        style={{ width: 80 }}
                       />
                       -
                       <InputNum
@@ -230,7 +234,6 @@ const FindID = () => {
                         value={formData.hp3}
                         onChange={handleInputChange}
                         maxLength={4}
-                        style={{ width: 80 }}
                       />
                     </dt>
                   </li>
@@ -241,19 +244,18 @@ const FindID = () => {
                         name="emailId"
                         value={formData.emailId}
                         onChange={handleInputChange}
-                        style={{ width: 100 }}
                       />
                       @
                       <Input
                         name="emailDomain"
                         value={formData.emailDomain}
                         onChange={handleInputChange}
-                        style={{ width: 100 }}
+                        disabled={formData.selectEmailDomain !== ''}
                       />
                       <Select
                         name="selectEmailDomain"
                         value={formData.selectEmailDomain}
-                        onChange={(value) => setFormData(prev => ({ ...prev, selectEmailDomain: value }))}
+                        onChange={handleEmailDomainChange}
                         style={{ width: 120 }}
                       >
                         <Select.Option value="">직접입력</Select.Option>

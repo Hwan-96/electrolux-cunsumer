@@ -14,7 +14,7 @@ const Footer = () => {
       <div className="inner">
         <div className="fmenu">
           <p className="flogo">
-            <img src='/images/logo-footer.png' alt="Electrolux" />
+            <img src='/images/flogo.png' alt="Electrolux" />
           </p>
           <ul>
             <li><Link to="/terms">이용약관</Link></li>
