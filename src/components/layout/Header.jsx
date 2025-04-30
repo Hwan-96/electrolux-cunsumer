@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import useAuthStore from '@/stores/authStore';
 
 const Header = () => {
@@ -7,7 +7,26 @@ const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMyMenuOpen, setIsMyMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
   const { isLoggedIn, userInfo, logout } = useAuthStore();
+  const location = useLocation();
+
+  // 화면 크기 변경 감지
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setIsGnbOpen(false);
+    }
+    window.scrollTo(0, 0);
+  }, [location.pathname, isMobile]);
 
   const toggleGnb = () => setIsGnbOpen(!isGnbOpen);
   const toggleSearch = () => setIsSearchOpen(!isSearchOpen);
@@ -27,18 +46,33 @@ const Header = () => {
     window.location.href = '/';
   };
 
+  // 모바일일 때만 적용될 스타일
+  const mobileGnbStyle = isMobile ? {
+    left: isGnbOpen ? '0' : '-150%',
+    opacity: isGnbOpen ? '1' : '0',
+    transition: 'all 0.3s ease-in-out'
+  } : {};
+
+  // 링크 클릭 핸들러
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setIsGnbOpen(false);
+    }
+    window.scrollTo(0, 0);
+  };
+
   return (
     <div id="header-wrap">
       <header id="header">
         <h1 className="logo">
-          <Link to="/">
+          <Link to="/" onClick={handleLinkClick}>
             <img src='/images/logo.png' alt="Electrolux 고객센터" />
           </Link>
         </h1>
 
         <button 
           type="button" 
-          className="hgbtn btn-gnb-open"
+          className={isGnbOpen ? 'hgbtn btn-gnb-open open' : 'hgbtn btn-gnb-open'}
           onClick={toggleGnb}
         >
           전체메뉴 열기
@@ -61,22 +95,19 @@ const Header = () => {
               // 로그인된 경우
               <ul>
                 {userInfo?.type === 'admin' && (
-                  <li><Link to="/mng">관리자페이지</Link></li>
+                  <li><Link to="/mng" onClick={handleLinkClick}>관리자페이지</Link></li>
                 )}
                 <li>
-                  {/* <a href="https://member.electroluxconsumer.co.kr/mypage/?contents=mypage_info" target="_blank" rel="noopener noreferrer">
-                    회원정보수정
-                  </a> */}
-                  <Link to="/mem/cs">회원정보수정</Link>
+                  <Link to="/mem/cs" onClick={handleLinkClick}>회원정보수정</Link>
                 </li>
-                <li><Link to="/qna">1:1상담내역</Link></li>
+                <li><Link to="/qna" onClick={handleLinkClick}>1:1상담내역</Link></li>
                 <li><a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>로그아웃</a></li>
               </ul>
             ) : (
               // 로그인되지 않은 경우
               <ul>
-                <li><Link to="/login">로그인</Link></li>
-                <li><Link to="/join/agreement">회원가입</Link></li>
+                <li><Link to="/login" onClick={handleLinkClick}>로그인</Link></li>
+                <li><Link to="/join/agreement" onClick={handleLinkClick}>회원가입</Link></li>
               </ul>
             )}
           </div>
@@ -92,12 +123,12 @@ const Header = () => {
         </button>
 
         {/* 모바일 gnb 상단 */}
-        <nav id="gnb-wrap" className={isGnbOpen ? 'open' : ''}>
+        <nav id="gnb-wrap" className={isGnbOpen ? 'open' : ''} style={mobileGnbStyle}>
           <div className="m-top">
             {isLoggedIn ? (
               <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>로그아웃</a>
             ) : (
-              <Link to="/login">로그인</Link>
+              <Link to="/login" onClick={handleLinkClick}>로그인</Link>
             )}
             <a href="https://www.electrolux.co.kr/" target="_blank" rel="noopener noreferrer" title="새창">
               소모품 구매
@@ -115,25 +146,25 @@ const Header = () => {
               onMouseLeave={handleMouseLeave}
               className={activeSubmenu === 'service' ? 'active dep1-2' : ''}
             >
-              <Link to="/svc/wrnt">서비스정책 안내</Link>
+              <Link to="/svc/wrnt" onClick={handleLinkClick}>서비스정책 안내</Link>
               <ul className="dep2">
-                <li><Link to="/svc/wrnt">제품 보증 기간</Link></li>
-                <li><Link to="/svc/as">유ㆍ무상 기준</Link></li>
-                <li><Link to="/svc/asChr">수리 요금 구성</Link></li>
+                <li><Link to="/svc/wrnt" onClick={handleLinkClick}>제품 보증 기간</Link></li>
+                <li><Link to="/svc/as" onClick={handleLinkClick}>유ㆍ무상 기준</Link></li>
+                <li><Link to="/svc/asChr" onClick={handleLinkClick}>수리 요금 구성</Link></li>
               </ul>
             </li>
             <li>
-              <Link to="/cntLst">서비스센터 찾기</Link>
+              <Link to="/cntLst" onClick={handleLinkClick}>서비스센터 찾기</Link>
             </li>
             <li 
               onMouseEnter={() => handleMouseEnter('customer')}
               onMouseLeave={handleMouseLeave}
               className={activeSubmenu === 'customer' ? 'active dep1-4' : ''}
             >
-              <Link to="/faq">고객 상담</Link>
+              <Link to="/faq" onClick={handleLinkClick}>고객 상담</Link>
               <ul className="dep2">
-                <li><Link to="/faq">자주하는 질문</Link></li>
-                <li><Link to="/qna">1:1 상담</Link></li>
+                <li><Link to="/faq" onClick={handleLinkClick}>자주하는 질문</Link></li>
+                <li><Link to="/qna" onClick={handleLinkClick}>1:1 상담</Link></li>
               </ul>
             </li>
             <li 
@@ -141,15 +172,15 @@ const Header = () => {
               onMouseLeave={handleMouseLeave}
               className={activeSubmenu === 'download' ? 'active dep1-5' : ''}
             >
-              <Link to="/dwn/manual">다운로드</Link>
+              <Link to="/dwn/manual" onClick={handleLinkClick}>다운로드</Link>
               <ul className="dep2">
-                <li><Link to="/dwn/manual">제품 사용 설명서</Link></li>
-                <li><Link to="/dwn/cleanup">청소기 관리 방법</Link></li>
+                <li><Link to="/dwn/manual" onClick={handleLinkClick}>제품 사용 설명서</Link></li>
+                <li><Link to="/dwn/cleanup" onClick={handleLinkClick}>청소기 관리 방법</Link></li>
               </ul>
             </li>
-            <li><Link to="/ntc">공지사항</Link></li>
+            <li><Link to="/ntc" onClick={handleLinkClick}>공지사항</Link></li>
             <li>
-              <Link to="/evnt">이벤트</Link>
+              <Link to="/evnt" onClick={handleLinkClick}>이벤트</Link>
             </li>
 
             {/* pc만 노출 */}
@@ -165,27 +196,27 @@ const Header = () => {
               onMouseEnter={() => handleMouseEnter('mypage')}
               onMouseLeave={handleMouseLeave}
             >
-              <Link to={isLoggedIn ? "/member/my-cs.php" : "/login"}>마이페이지</Link>
+              <Link to={isLoggedIn ? "/member/my-cs.php" : "/login"} onClick={handleLinkClick}>마이페이지</Link>
               <ul className="dep2">
                 {isLoggedIn ? (
                   // 로그인된 경우
                   <>
                     {userInfo?.type === 'admin' && (
-                      <li><Link to="/admin">관리자페이지</Link></li>
+                      <li><Link to="/admin" onClick={handleLinkClick}>관리자페이지</Link></li>
                     )}
                     <li>
                       <a href="https://member.electroluxconsumer.co.kr/mypage/?contents=mypage_info" target="_blank" rel="noopener noreferrer" title="새창">
                         회원정보수정
                       </a>
                     </li>
-                    <li><Link to="/member/my-cs.php">1:1상담내역</Link></li>
+                    <li><Link to="/member/my-cs.php" onClick={handleLinkClick}>1:1상담내역</Link></li>
                     <li><a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>로그아웃</a></li>
                   </>
                 ) : (
                   // 로그인되지 않은 경우
                   <>
-                    <li><Link to="/login">로그인</Link></li>
-                    <li><Link to="/join/agreement">회원가입</Link></li>
+                    <li><Link to="/login" onClick={handleLinkClick}>로그인</Link></li>
+                    <li><Link to="/join/agreement" onClick={handleLinkClick}>회원가입</Link></li>
                   </>
                 )}
               </ul>

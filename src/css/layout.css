@@ -538,3 +538,17 @@ transition-duration: .3s;
 	/*gnb*/
 	#gnb-wrap {position: relative;top: auto;left: auto;width: 100%;}
 }
+
+@media (max-width: 1024px){
+	#header-wrap{
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		z-index: 200;
+		background-color: #fff;
+	}
+	main{
+		margin-top: 60px;
+	}
+}
