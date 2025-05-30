@@ -4,6 +4,7 @@ export const setCookie = (name, value, options = {}) => {
     path: '/',
     secure: true,
     sameSite: 'strict',
+    httpOnly: false,
     ...options
   };
 

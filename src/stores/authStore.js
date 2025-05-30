@@ -21,54 +21,33 @@ export const useAuthStore = create((set, get) => ({
   // 로그인
   login: async (acnt_id, acnt_pw) => {
     try {
-      console.log('로그인 시도:', { acnt_id, acnt_pw });
+      // 테스트용 관리자 계정 설정
+      const mockAdminUser = {
+        id: 'admin',
+        username: 'admin',
+        name: '관리자',
+        type: 'admin',
+        acnt_seq: '1',
+        tel_no: '010-0000-0000',
+        mail_addr: 'admin@test.com',
+        sms_agree_flag: 'Y',
+        email_agree_flag: 'Y'
+      };
+
+      // 테스트용 토큰
+      const mockToken = 'mock-access-token-for-testing';
       
-      // 직접 axios를 사용하여 로그인 API 호출
-      const response = await axiosInstance.post('/api/loginProc', {
-        acnt_id,
-        acnt_pw,
-      });
-
-      console.log('로그인 응답:', response);
-      const data = response.data;
-      console.log('로그인 데이터:', data);
-
-      // 로그인 실패 처리
-      if (data.accessToken === null || data.message) {
-        console.log('로그인 실패:', data.message);
-        return { 
-          success: false, 
-          message: data.message || '로그인에 실패했습니다.' 
-        };
-      }
-
       // 토큰 저장
-      // accessToken은 메모리에만 저장
-      set({ accessToken: data.accessToken });
-      
-      // refreshToken은 쿠키에 저장
-      setCookie('refreshToken', data.refreshToken, 7); // 7일 유효
+      set({ accessToken: mockToken });
       
       // axios 인스턴스의 헤더에 토큰 설정
-      axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
+      axiosInstance.defaults.headers.Authorization = `Bearer ${mockToken}`;
       
-      const userInfo = {
-        id: acnt_id,
-        username: acnt_id,
-        name: data.user?.acnt_nm || acnt_id,
-        type: data.roles?.includes('ROLE_ADMIN') ? 'admin' : 'user',
-        acnt_seq: data.user?.acnt_seq,
-        tel_no: data.user?.tel_no,
-        mail_addr: data.user?.mail_addr,
-        sms_agree_flag: data.user?.sms_agree_flag,
-        email_agree_flag: data.user?.email_agree_flag
-      };
-      
-      console.log('로그인 성공, 사용자 정보:', userInfo);
+      console.log('테스트용 관리자 로그인 성공');
       
       set({
         isLoggedIn: true,
-        userInfo,
+        userInfo: mockAdminUser,
         lastActivity: Date.now(),
         showLogoutPrompt: false
       });
@@ -77,15 +56,9 @@ export const useAuthStore = create((set, get) => ({
       return { success: true };
     } catch (error) {
       console.error('로그인 중 오류:', error);
-      console.log('오류 세부 정보:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        responseData: error.response?.data
-      });
       return { 
         success: false, 
-        message: error.response?.data?.message || '로그인 중 오류가 발생했습니다.' 
+        message: '로그인 중 오류가 발생했습니다.' 
       };
     }
   },
@@ -117,7 +90,7 @@ export const useAuthStore = create((set, get) => ({
         throw new Error('리프레시 토큰이 없습니다.');
       }
 
-      const response = await axiosInstance.post('/api/refresh', { refreshToken });
+      const response = await axiosInstance.post('/api/refreshToken', { refreshToken });
       const data = response.data;
 
       if (!data.accessToken) {
