@@ -18,6 +18,8 @@ const CenterList = () => {
   const [selectedCenter, setSelectedCenter] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [regionOptions, setRegionOptions] = useState([{ value: 'all', label: '전체' }]);
+  const [cityOptions, setCityOptions] = useState([{ value: 'all', label: '전체' }]);
   const navigate = useNavigate();
   // regionStore에서 필요한 상태와 함수 가져오기
   const {
@@ -29,6 +31,32 @@ const CenterList = () => {
     getRegionOptions,
     isCitySelectDisabled
   } = useRegionStore();
+
+  // 지역 옵션 로드
+  useEffect(() => {
+    const loadRegionOptions = async () => {
+      try {
+        const options = await getRegionOptions();
+        setRegionOptions(options);
+      } catch (error) {
+        console.error('지역 옵션 로드 실패:', error);
+      }
+    };
+    loadRegionOptions();
+  }, [getRegionOptions]);
+
+  // 시군구 옵션 로드
+  useEffect(() => {
+    const loadCityOptions = async () => {
+      try {
+        const options = await getCityOptions(selectedRegion);
+        setCityOptions(options);
+      } catch (error) {
+        console.error('시군구 옵션 로드 실패:', error);
+      }
+    };
+    loadCityOptions();
+  }, [selectedRegion, getCityOptions]);
 
   const handleRegionTypeChange = useCallback((e) => {
     const region = sanitizeInput(e.target.value);
@@ -48,18 +76,8 @@ const CenterList = () => {
   const handleSearch = useCallback(() => {
     setLoading(true);
     try {
-      // TODO: 실제 API 호출로 변경
-      // const response = await axios.get('/api/centerList', {
-      //   params: { 
-      //     region,
-      //     city,
-      //     searchValue
-      //   }
-      // });
-      // setData(response.data);
       console.log('검색 파라미터:', { region: selectedRegion, city: selectedCity, searchValue });
       
-      // 임시로 Mock 데이터 사용
       const filteredData = centerListSearch(getMockData(), {
         region: selectedRegion,
         city: selectedCity,
@@ -94,7 +112,7 @@ const CenterList = () => {
         {
           value: selectedRegion,
           onChange: handleRegionTypeChange,
-          options: getRegionOptions().map(option => ({
+          options: regionOptions.map(option => ({
             ...option,
             label: sanitizeInput(option.label)
           }))
@@ -102,7 +120,7 @@ const CenterList = () => {
         {
           value: selectedCity,
           onChange: handleCityTypeChange,
-          options: getCityOptions(selectedRegion).map(option => ({
+          options: cityOptions.map(option => ({
             ...option,
             label: sanitizeInput(option.label)
           })),
